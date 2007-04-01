@@ -1,0 +1,90 @@
+#!/usr/bin/env python
+#
+# Copyright (C) 2007 Rico Schiekel (fire at downgra dot de)
+# 
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+# vim:syntax=python:sw=4:ts=4:expandtab
+
+# first try psyco
+try:
+    import psyco
+    psyco.full()
+except ImportError:
+    pass
+
+import sys, os
+import subprocess, atexit, traceback
+import logging, logging.handlers
+
+# init logger
+logging.basicConfig(level=logging.WARN,
+                    format='%(asctime)s %(levelname)s: %(name)s: %(message)s',
+                    filename=os.path.expanduser('~/.wmii3.log'),
+                    filemode='w')
+logger = logging.getLogger('wmiirc')
+
+WMII_CONFPATH = os.environ.get('WMII_CONFPATH', []).split(':')[0]
+
+# define plan9 file system mount point
+if not os.environ.has_key('PLAN9_FS_MOUNT_POINT'):
+    os.environ.setdefault('PLAN9_FS_MOUNT_POINT', os.path.join(WMII_CONFPATH, 'fs'))
+
+from config import *
+# try to set log level
+try:
+    logging.getLogger().setLevel(LOG_LEVEL)
+except:
+    pass
+
+from utils import *
+init_tag_mappings(TAG_MAPPING)
+
+from utils.statusbar import Statusbar
+from events import *
+
+# close running wmiirc
+p9_write('/event', 'Start wmiirc')
+
+# write base settings
+p9_write('/ctl', (
+    'font %s' % FONT,
+    'focuscolors %s' % FOCUS_COLORS,
+    'selcolors %s' % SELECTION_COLORS,
+    'normcolors %s' % NORMAL_COLORS,
+    'border %s' % BORDER,
+    'grabmod %s' % MODKEY))
+
+p9_write('/colrules', COL_RULES)
+p9_write('/tagrules', TAG_RULES)
+p9_write('/keys', Key.used_keys())
+
+# init statusbar
+status_bar = Statusbar(os.path.join(WMII_CONFPATH, 'statusbar'),
+                       STATUS_BAR_SEPARATOR, \
+                       STATUS_BAR_START, \
+                       STATUS_BAR_END)
+status_bar.start()
+atexit.register(status_bar.stop)
+
+# main event loop
+cont = True
+while cont:
+    try:
+        p9_process('/event', event_handler, EVENTS)
+        cont = False
+    except Exception, e:
+        logger.exception(e)
+

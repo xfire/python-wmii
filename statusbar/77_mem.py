@@ -27,36 +27,32 @@ logger = logging.getLogger('statusbar.mem')
 RE_MEM = re.compile('^Mem:\s*(?P<total>\d+)\s+(?P<used>\d+)\s+(?P<free>\d+)\s+(?P<shared>\d+)\s+(?P<buffers>\d+)\s+(?P<cached>\d+).*$')
 RE_SWAP = re.compile('^Swap:\s*(?P<total>\d+)\s+(?P<used>\d+)\s+(?P<free>\d+).*$')
 
-LAST_CALL_TIME = 0
-def update(call_time):
-    global LAST_CALL_TIME
+def interval():
+    return 2
 
-    if call_time - LAST_CALL_TIME > 2:
-        try:
-            LAST_CALL_TIME = call_time
+def update():
+    try:
+        p = subprocess.Popen(['free', '-m'], stdout=subprocess.PIPE, close_fds=True)
+        lines = p.stdout.readlines()
+        p.stdout.close()
 
-            p = subprocess.Popen(['free', '-m'], stdout=subprocess.PIPE, close_fds=True)
-            lines = p.stdout.readlines()
-            p.stdout.close()
+        mem = RE_MEM.match(lines[1])
+        swap = RE_SWAP.match(lines[3])
 
-            mem = RE_MEM.match(lines[1])
-            swap = RE_SWAP.match(lines[3])
+        if mem and swap:
+            mem = dict([(k, float(v)) for k, v in mem.groupdict().items()])
+            swap = dict([(k, float(v)) for k, v in swap.groupdict().items()])
 
-            if mem and swap:
-                mem = dict([(k, float(v)) for k, v in mem.groupdict().items()])
-                swap = dict([(k, float(v)) for k, v in swap.groupdict().items()])
+            mem_used = mem['used'] - mem['buffers'] - mem['cached']
+            mem_usage = mem_used / mem['total'] * 100.0
 
-                mem_used = mem['used'] - mem['buffers'] - mem['cached']
-                mem_usage = mem_used / mem['total'] * 100.0
+            swap_usage = swap['used'] / swap['total'] * 100.0
 
-                swap_usage = swap['used'] / swap['total'] * 100.0
+            # return (BAR_NORMAL_COLORS, 'RAM: %d / %d MB (%02d%%) SWAP: %d / %d MB (%02d%%)' % \
+            #         (mem_used, mem['total'], mem_usage, swap['used'], swap['total'], swap_usage))
+            return (BAR_NORMAL_COLORS, 'RAM: %d MB (%02d%%) SWAP: %d MB (%02d%%)' % \
+                    (mem_used, mem_usage, swap['used'], swap_usage))
+    except Exception, e:
+        logger.exception(e)
 
-                # return (BAR_NORMAL_COLORS, 'RAM: %d / %d MB (%02d%%) SWAP: %d / %d MB (%02d%%)' % \
-                #         (mem_used, mem['total'], mem_usage, swap['used'], swap['total'], swap_usage))
-                return (BAR_NORMAL_COLORS, 'RAM: %d MB (%02d%%) SWAP: %d MB (%02d%%)' % \
-                        (mem_used, mem_usage, swap['used'], swap_usage))
-        except Exception, e:
-            logger.exception(e)
-
-        return (BAR_NORMAL_COLORS, 'RAM: -- MB (--%%) SWAP: -- MB (--%%)')
-    return None
+    return (BAR_NORMAL_COLORS, 'RAM: -- MB (--%%) SWAP: -- MB (--%%)')

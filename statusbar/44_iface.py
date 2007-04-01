@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2007 Rico Schiekel (fire at downgra dot de)
+# Copyright (C) 2007 Alexander Bernauer (alex at copton dot net)
 # 
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -17,11 +17,32 @@
 #
 # vim:syntax=python:sw=4:ts=4:expandtab
 
-import time
+import re, subprocess, logging
+
+from utils import Colors
 from config import BAR_NORMAL_COLORS
 
+logger = logging.getLogger('statusbar.iface')
+
 def interval():
-    return 60
+    return 5
 
 def update():
-    return (BAR_NORMAL_COLORS, time.strftime('%Y-%m-%d - %H:%M'))
+    try:
+        s = ""
+        for iface in ['eth0', 'eth1']:
+            s += iface + ": "
+            p = subprocess.Popen(['ip', 'a', 's', iface], stdout=subprocess.PIPE, close_fds=True)
+            lines = p.stdout.readlines()
+            p.stdout.close()
+            
+            if re.search("UP", lines[0]) == None:
+                s += "off "
+            for l in lines[1:]:
+                mo = re.search("inet\s*([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})", l)
+                if mo:
+                    s += mo.group(1) + " "
+    
+        return (BAR_NORMAL_COLORS, s)
+    except Exception, e:
+        logger.exception(e)

@@ -136,7 +136,11 @@ class P9Client(object):
     def p9_write(self, fd, file, value):
         if type(value) not in (type([]), type(()), type(set())):
             value = [value]
-        self.__walk(fd, file)
+        try:
+            # TODO: walk on non existent files fail. needed?
+            self.__walk(fd, file)
+        except:
+            pass
         self.__open(fd, mode = P9.OWRITE|P9.OTRUNC)
         self.__write(fd, '\n'.join(value) + '\n')
         self.__close(fd)

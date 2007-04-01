@@ -64,7 +64,7 @@ default key bindings:
     Mod4-Shift-t            prompt for tag to add it to current client
     Mod4-Control-t          prompt for tag to set it to current client
 
-    Mod4-Shift-u            remove current client to view
+    Mod4-Shift-u            remove current client from view
     Mod4-Control-u          remove all other tags from current client except current view
 
     Mod4-s                  switch to stacked column mode
@@ -183,15 +183,14 @@ event handler:
 
 status bar:
     the statusbar reads plugins from 'statusbar' subdirectory and call periodical
-    the 'update' function (once per second), which every statusbar plugin must 
+    the update() function, which every statusbar plugin must 
     implement.
+    each plugin must implement an interval() function, which return the interval
+    in seconds, in which the update() function is called.
 
-    the update function expected one parameter. it's the actuall time in seconds
-    since the epoch. using this value, a plugin can be updated in interavals
-    larger than 1 second.
-
-    the return value can be None, indicating that no update should be done, or
-    an tuple containing the color and the string to display.
+    the return value of the update() function can be None, indicating that no 
+    update should be done, or it must be an tuple containing the color and the 
+    string to display.
 
     sorting is achieved by using the plugins filename. so '66_load.py' will be
     displayed left of '77_cpu.py', and so on.
@@ -202,4 +201,7 @@ changelog
 version 0.1 - first version
 version 0.2 - update to reflect changes in dmenu (missing -t), fix some import
               statements, add try-catch to dmenu
-
+version 0.3 - rework statusbar code and hopefully make it more robust, rework
+              event handling using a queue (would allow chaining key handlers in
+              the future), add new statusbar plugin from alex which show the
+              current used ip's for each nic interface

@@ -52,7 +52,7 @@ except:
 from utils import *
 init_tag_mappings(TAG_MAPPING)
 
-from utils.statusbar import Statusbar
+from utils.statusbar import *
 from events import *
 
 # close running wmiirc
@@ -72,19 +72,23 @@ p9_write('/tagrules', TAG_RULES)
 p9_write('/keys', Key.used_keys())
 
 # init statusbar
-status_bar = Statusbar(os.path.join(WMII_CONFPATH, 'statusbar'),
-                       STATUS_BAR_SEPARATOR, \
-                       STATUS_BAR_START, \
-                       STATUS_BAR_END)
-status_bar.start()
-atexit.register(status_bar.stop)
+start_statusbar(os.path.join(WMII_CONFPATH, 'statusbar'),
+                STATUS_BAR_SEPARATOR, \
+                STATUS_BAR_START, \
+                STATUS_BAR_END)
+atexit.register(stop_statusbar)
 
-# main event loop
+# init event handler
+atexit.register(stop_event_handler)
+add_event(autostart)
+
+# main loop
 cont = True
 while cont:
     try:
-        p9_process('/event', event_handler, EVENTS)
+        p9_process('/event', add_event)
         cont = False
     except Exception, e:
         logger.exception(e)
 
+logger.debug('safe shutdown')

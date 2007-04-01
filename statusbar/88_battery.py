@@ -21,7 +21,7 @@ import re, logging, math
 
 from utils import Colors
 from utils.statusbar import parse_file
-from config import BAR_NORMAL_COLORS, BAR_FOCUS_COLORS
+from config import BAR_NORMAL_COLORS
 
 logger = logging.getLogger('statusbar.battery')
 
@@ -34,39 +34,36 @@ RE_REMAINING_CAPACITY = re.compile(r'^remaining capacity:\s+(?P<remain>\d+).*$')
 RE_PRESENT_RATE = re.compile(r'^present rate:\s+(?P<rate>\d+).*$')
 RE_AC_ONLINE = re.compile(r'^state:\s*(?P<state>on.line).*$')
 
-LAST_CALL_TIME = 0
-def update(call_time):
-    global LAST_CALL_TIME
+def interval():
+    return 2
 
-    if call_time - LAST_CALL_TIME > 2:
-        ac_vals = parse_file(FILE_AC, RE_AC_ONLINE)
-        bat_vals = parse_file([FILE_BAT_INFO, FILE_BAT_STATE], [RE_FULL_CAPACITY, RE_REMAINING_CAPACITY, RE_PRESENT_RATE])
+def update():
+    ac_vals = parse_file(FILE_AC, RE_AC_ONLINE)
+    bat_vals = parse_file([FILE_BAT_INFO, FILE_BAT_STATE], [RE_FULL_CAPACITY, RE_REMAINING_CAPACITY, RE_PRESENT_RATE])
 
-        bat = '--'
-        ac = '--'
-        color = BAR_NORMAL_COLORS
-        try:
-            lastfull = float(bat_vals['lastfull'][0])
-            remain = float(bat_vals['remain'][0])
-            rate = float(bat_vals['rate'][0])
+    bat = '--'
+    ac = '--'
+    color = BAR_NORMAL_COLORS
+    try:
+        lastfull = float(bat_vals['lastfull'][0])
+        remain = float(bat_vals['remain'][0])
+        rate = float(bat_vals['rate'][0])
 
-            percent = math.floor(remain / lastfull * 100.0 + 0.5)
-            bat = '%d%%' % percent
-            if percent < 50:
-                color = Colors(0xFFFF00, BAR_NORMAL_COLORS.background, BAR_NORMAL_COLORS.border)
-            elif percent < 25:
-                color = Colors(0xFF0000, BAR_NORMAL_COLORS.background, BAR_NORMAL_COLORS.border)
+        percent = math.floor(remain / lastfull * 100.0 + 0.5)
+        bat = '%d%%' % percent
+        if percent < 25:
+            color = Colors(0xFF0000, BAR_NORMAL_COLORS.background, BAR_NORMAL_COLORS.border)
+        elif percent < 50:
+            color = Colors(0xFFFF00, BAR_NORMAL_COLORS.background, BAR_NORMAL_COLORS.border)
 
-            if ac_vals:
-                ac = '*AC*'
-            elif rate > 0:
-                mins = (3600.0 * (remain / rate)) / 60.0
-                hours = math.floor(mins / 60.0)
-                mins = math.floor(mins - (hours * 60.0))
-                ac = '%02d:%02d' % (hours, mins)
-        except Exception, e:
-            logger.exception(e)
+        if ac_vals:
+            ac = '*AC*'
+        elif rate > 0:
+            mins = (3600.0 * (remain / rate)) / 60.0
+            hours = math.floor(mins / 60.0)
+            mins = math.floor(mins - (hours * 60.0))
+            ac = '%02d:%02d' % (hours, mins)
+    except Exception, e:
+        logger.exception(e)
 
-        LAST_CALL_TIME = call_time
-        return (color, 'BAT: %s' % (' '.join((bat, ac))))
-    return None
+    return (color, 'BAT: %s' % (' '.join((bat, ac))))

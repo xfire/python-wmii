@@ -19,24 +19,20 @@
 
 import os
 from utils import Colors
-from config import BAR_NORMAL_COLORS, BAR_FOCUS_COLORS
+from config import BAR_NORMAL_COLORS
 
-LAST_CALL_TIME = 0
-def update(call_time):
-    global LAST_CALL_TIME
+def interval():
+    return 3
 
-    if call_time - LAST_CALL_TIME > 3:
-        LAST_CALL_TIME = call_time
+def update():
+    lavg = os.getloadavg()
+    
+    color = BAR_NORMAL_COLORS
+    if max(lavg) > 1.5:
+        # yellow text
+        color = Colors(0xFFFF00, BAR_NORMAL_COLORS.background, BAR_NORMAL_COLORS.border)
+    if max(lavg) > 4.0:
+        # red text
+        color = Colors(0xFF0000, BAR_NORMAL_COLORS.background, BAR_NORMAL_COLORS.border)
 
-        lavg = os.getloadavg()
-        
-        color = BAR_NORMAL_COLORS
-        if max(lavg) > 1.5:
-            # yellow text
-            color = Colors(0xFFFF00, BAR_NORMAL_COLORS.background, BAR_NORMAL_COLORS.border)
-        if max(lavg) > 4.0:
-            # red text
-            color = Colors(0xFF0000, BAR_NORMAL_COLORS.background, BAR_NORMAL_COLORS.border)
-
-        return (color, 'LOAD: %.2f %.2f %.2f' % lavg)
-    return None
+    return (color, 'LOAD: %.2f %.2f %.2f' % lavg)

@@ -17,9 +17,11 @@
 #
 # vim:syntax=python:sw=4:ts=4:expandtab
 
-import re, types
+import os, re, types
 import subprocess
 import logging
+import threading
+import bdeque
 
 logger = logging.getLogger('utils')
 
@@ -39,8 +41,49 @@ if not globals().has_key('p9_available') or not p9_available():
     raise StandardError('no suitable p9 client found!')
 
 # ---------------------------------------------------------------------------
+# global event queue (thread safe)
+EVENT_QUEUE = bdeque.bdeque()
+EVENT_LOOP = True
+EVENT_HANDLER = None
+
+class EventHandler(threading.Thread):
+    def __init__(self, handler_list):
+        self.__handler_list = handler_list
+        threading.Thread.__init__(self)
+
+    def run(self):
+        global EVENT_LOOP, EVENT_QUEUE
+        while EVENT_LOOP:
+            event = EVENT_QUEUE.popleft()
+            try:
+                logger.debug('dispatch event: [%s]' % event)
+                if type(event) in types.StringTypes:
+                    # call every matching event handler
+                    [handler(event) for handler in self.__handler_list if handler.match(event)]
+                elif callable(event):
+                    # simple call
+                    event()
+            except Exception, e:
+                logger.exception(e)
+
+def stop_event_handler():
+    global EVENT_LOOP
+    EVENT_LOOP = False
+
+def add_event(event):
+    global EVENT_QUEUE, EVENT_HANDLER
+
+    logger.debug('add event: [%s]' % event)
+    EVENT_QUEUE.append(event)
+    if not EVENT_HANDLER or not EVENT_HANDLER.isAlive(): 
+        from events import EVENTS
+        logger.debug('(re)start event handler')
+        EVENT_HANDLER = EventHandler(EVENTS)
+        EVENT_HANDLER.start()
+    return True
 
 class EventResolver(object):
+    """encapsulate an event handler"""
     def __init__(self, regex, handler, default_kwargs = None):
         if type(regex) in types.StringTypes:
             regex = re.compile(regex)
@@ -53,12 +96,6 @@ class EventResolver(object):
 
     def __call__(self, event):
         self.__handler(event, **self.__default_kwargs)
-
-def event_handler(event_str, event_list):
-    """for an event iterate over event list an call all matching events."""
-    logger.debug('event: %s' % event_str)
-    [event(event_str) for event in event_list if event.match(event_str)]
-    return True
 
 class Key(object):
     """defines an key. must be used in patterns to define key assignments."""
@@ -106,6 +143,17 @@ def patterns(*tuples):
         logger.debug('add event handler: "%s", %s' % (regex, handler))
         resolver_list.append(EventResolver(regex, handler, *default_kwargs))
     return resolver_list
+
+def autostart():
+    """run $WMII_CONFPATH/autostart.sh to autostart user defined applications at wmii start"""
+    WMII_CONFPATH = os.environ.get('WMII_CONFPATH', [])
+    for path in WMII_CONFPATH.split(':'):
+        file = os.path.join(path, 'autostart.sh')
+        if os.path.isfile(file):
+            try:
+                subprocess.Popen(file, shell = True).wait()
+            except Exception, e:
+                logger.exception(e)
 
 # ---------------------------------------------------------------------------
 

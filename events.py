@@ -103,7 +103,7 @@ APPLICATIONS = dict(quit = quit,
                     lock = execute('slock'),
                     mail = execute('start.mail'),
                     firefox = execute('firefox'),
-                    opera = execute('x-www­browser'),
+                    opera = execute('opera'),
                     wallpaper = execute('set_random_wallpaper.zsh'))
 EVENTS += patterns(
     (MKey('a'), call_dmenu(APPLICATIONS)),

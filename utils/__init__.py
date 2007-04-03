@@ -85,6 +85,8 @@ def add_event(event):
 class EventResolver(object):
     """encapsulate an event handler"""
     def __init__(self, regex, handler, default_kwargs = None):
+        if callable(regex):
+            regex = regex()
         if type(regex) in types.StringTypes:
             regex = re.compile(regex)
         self.__regex = regex
@@ -103,13 +105,29 @@ class Key(object):
 
     def __init__(self, key_desc):
         self.__key_desc = key_desc
-        self.__used_keys.add(key_desc)
+
+    def __str__(self):
+        return self.__key_desc
 
     def __call__(self):
-        return r'^Key %s$' % self.__key_desc
+        self.__used_keys.add(self.__key_desc)
+        return r'^Key %s$' % self
+
+    def set(self, key_desc):
+        """set new key definition"""
+        self.__key_desc = key_desc
+
+    def add(self, key_desc):
+        """add key_desc to key defintion"""
+        self.__key_desc += key_desc
+
+    def replace(self, old, new, count = -1):
+        """replace old to new in key defintion"""
+        self.__key_desc = self.__key_desc.replace(old, new, count)
 
     @classmethod
     def used_keys(cls):
+        """return list of all defined keys"""
         return cls.__used_keys
 
 class MKey(Key):
@@ -122,30 +140,64 @@ def patterns(*tuples):
     """
     used to create the EVENT list. 
     
-    take tuples as parameters. 
+    take callable objects or tuples as parameters. 
     
-    each tuple must have first the regex to match or a callable object which returns 
+    callable objects should return: 
+        - one or more regular expressions as string or precompiled 're' objects
+        - one or more EventResolver objects (SendSet)
+
+    tuples must have have first the regex to match or a callable object which returns 
     the regex. (see Key, MKey)
-    the second object in the tuple must be the event handler.
-    at least there can be one dictionary, with parameters for the event handler.
+    the second object in the tuple must be the event handler, which must be a callable
+    object.
 
     eg.
         EVENTS += patterns(
-            (r'REGEX', my_handler, dict(param_1 = 1000, param_2 = 'foo')),
+            (r'REGEX', my_handler),
+            ((r'REGEX_1', r'REGEX_2'), my_second_handler),
+            (MKey('Shift-r'), my_third_handler),
+            SendSet('Shift-', style='vim'),
+            ...
         )
     """
     resolver_list = []
     for t in tuples:
-        regex, handler = t[:2]
+        if type(t) not in (types.ListType, types.TupleType):
+            t = [t]
+        regex = t[0]
+
+        try:
+            handler = t[1]
+        except IndexError:
+            handler = None
+
         default_kwargs = t[2:]
-        if callable(regex): # regex is a callable object, which must return a string or a compiled regex
+
+        if callable(regex):
             regex = regex()
-        logger.debug('add event handler: "%s", %s' % (regex, handler))
-        resolver_list.append(EventResolver(regex, handler, *default_kwargs))
+        if type(regex) not in (types.ListType, types.TupleType):
+            regex = [regex]
+
+        for r in regex:
+            if isinstance(r, EventResolver):
+                logger.debug('add event resolver: %s' % r)
+                resolver_list.append(r)
+            else:
+                if handler:
+                    if callable(handler):
+                        logger.debug('add event handler: "%s", %s' % (r, handler))
+                        resolver_list.append(EventResolver(r, handler, *default_kwargs))
+                    else:
+                        logger.warn('invalid handler: "%s", %s' % (r, handler))
+                else:
+                    logger.warn('no handler defined: "%s"' % r)
     return resolver_list
 
 def autostart():
-    """run $WMII_CONFPATH/autostart.sh to autostart user defined applications at wmii start"""
+    """
+    run $WMII_CONFPATH/autostart.sh to autostart user defined applications at wmii 
+    start.
+    """
     WMII_CONFPATH = os.environ.get('WMII_CONFPATH', [])
     for path in WMII_CONFPATH.split(':'):
         file = os.path.join(path, 'autostart.sh')

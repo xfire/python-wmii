@@ -17,8 +17,9 @@
 #
 # vim:syntax=python:sw=4:ts=4:expandtab
 
-import os, re, subprocess, logging
+import os, re, subprocess, logging, copy
 from utils import *
+from utils.ringbuffer import RingBuffer
 from config import BAR_NORMAL_COLORS, BAR_FOCUS_COLORS, SCRATCHPAD, \
                    DMENU_FONT, DMENU_NORMAL_COLORS, DMENU_SELECTION_COLORS
 
@@ -159,6 +160,42 @@ def send(direction):
     logger.debug('send: direction[%s]' % direction)
     p9_write('/tag/sel/ctl', 'send sel %s' % direction)
 
+class DirectionSet(object):
+    """
+    wrapper to create 4 direction event handlers. derive class and overwrite handler() function.
+    see 'SelectSet' and 'SendSet'.
+    """
+    VIM = 'vim' 
+    CURSOR = 'cursor'
+    STYLES = dict(cursor = ['Up', 'Down', 'Left', 'Right'], vim = ['h', 'j', 'k', 'l'])
+    FUNC = None
+
+    def __init__(self, rprefix, type):
+        self.__rprefix = rprefix
+        self.__type = type
+
+    def __call__(self):
+        hlist = []
+        sep = ''
+        if str(self.__rprefix)[-1] != '-':
+            sep = '-'
+        for i in range(0, 4):
+            key = copy.deepcopy(self.__rprefix)
+            key.add(sep + self.STYLES[self.__type][i])
+            hlist.append(EventResolver(key, self.handler()))
+        return hlist
+
+    def handler(self):
+        raise NotImplementedError('%s: please implement handler getter' % self.__class__.__name__)
+
+class SelectSet(DirectionSet):
+    def handler(self):
+        return select
+
+class SendSet(DirectionSet):
+    def handler(self):
+        return send
+
 # ---------------------------------------------------------------------------
 
 def prepare_pn_view(func):
@@ -195,6 +232,57 @@ def send_toggle(event):
     """send current client to mangaged or floating."""
     logger.debug('send_toggle: event[%s]' % event)
     p9_write('/tag/sel/ctl', 'send sel toggle')
+
+# ---------------------------------------------------------------------------
+
+HISTORY = RingBuffer(10)
+HISTORY_POS = -1
+HISTORY_IGNORE_NEXT = False
+HISTORY_DELETE = False
+class tag_history(object):
+    def __init__(self, max = 20):
+        global HISTORY, HISTORY_POS, HISTORY_IGNORE_NEXT, HISTORY_DELETE
+        HISTORY = RingBuffer(max)
+        HISTORY_POS = -1
+        HISTORY_IGNORE_NEXT = False
+        HISTORY_DELETE = False
+
+    def __call__(self, event = ''):
+        global HISTORY, HISTORY_POS, HISTORY_IGNORE_NEXT, HISTORY_DELETE
+        if not HISTORY_IGNORE_NEXT:
+            tag = event.strip().split()[-1]
+            if tag and tag != 'NULL':
+                # clear upper history
+                if HISTORY_DELETE:
+                    try:
+                        for i in range(0, len(HISTORY) - HISTORY_POS):
+                            HISTORY.pop()
+                    except:
+                        pass
+                    HISTORY_DELETE = False
+                HISTORY.append(tag)
+                HISTORY_POS = len(HISTORY) - 1
+                logger.debug('history save tag: %s (%d)' % (tag, len(HISTORY)))
+                logger.debug('history pos: %s' % HISTORY_POS)
+        else:
+            HISTORY_IGNORE_NEXT = False
+            HISTORY_DELETE = True
+
+def history_prev(event):
+    global HISTORY, HISTORY_POS, HISTORY_IGNORE_NEXT
+    if HISTORY_POS > 0:
+        HISTORY_POS -= 1
+        HISTORY_IGNORE_NEXT = True
+        logger.debug('history prev: %s' % HISTORY[HISTORY_POS])
+        view(HISTORY[HISTORY_POS])()
+
+def history_next(event):
+    global HISTORY, HISTORY_POS, HISTORY_IGNORE_NEXT
+    if HISTORY_POS < len(HISTORY) - 1:
+        HISTORY_POS += 1
+        HISTORY_IGNORE_NEXT = True
+        logger.debug('history next: %s' % HISTORY[HISTORY_POS])
+        view(HISTORY[HISTORY_POS])()
 
 # ---------------------------------------------------------------------------
 

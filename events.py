@@ -26,6 +26,7 @@ EVENTS = patterns(
     (r'^CreateTag', tag_create),
     (r'^DestroyTag', tag_destroy),
     (r'^FocusTag', tag_focus),
+    (r'^FocusTag', tag_history(15)),
     (r'^UnfocusTag', tag_unfocus),
     (r'^LeftBarClick', view()),
 )
@@ -48,17 +49,13 @@ for i in range(0, len(NAMED_VIEWS)):
     )
 
 EVENTS += patterns(
-    # focus up/down/left/right client
-    (MKey('Shift-Up'), select),
-    (MKey('Shift-Down'), select),
-    (MKey('Shift-Left'), select),
-    (MKey('Shift-Right'), select),
+    # focus up/down/left/right/h/j/k/l client
+    SelectSet(MKey('Shift-'), SelectSet.VIM),
+    SelectSet(MKey('Shift-'), SelectSet.CURSOR),
 
-    # move selected client up/down/left/right
-    (MKey('Control-Up'), send),
-    (MKey('Control-Down'), send),
-    (MKey('Control-Left'), send),
-    (MKey('Control-Right'), send),
+    # move selected client up/down/left/right/h/j/k/l
+    SendSet(MKey('Control-'), SendSet.VIM),
+    SendSet(MKey('Control-'), SendSet.CURSOR),
 
     # switch to next or previous view
     (MKey('Right'), view_next),
@@ -69,9 +66,13 @@ EVENTS += patterns(
     (MKey('Shift-Space'), add_tag(d2t(SCRATCHPAD))),
     (MKey('Ctrl-Space'), set_tag(d2t(SCRATCHPAD))),
 
+    # history
+    (MKey('plus'), history_next),
+    (MKey('minus'), history_prev),
+
     # toggle between managed and floating layer
-    (MKey('l'), toggle),
-    (MKey('Shift-l'), send_toggle),
+    (MKey('f'), toggle),
+    (MKey('Shift-f'), send_toggle),
 
     # add/set tag for current client selected using dmenu
     (MKey('Shift-t'), add_tag(d2t(dmenu(tag_generator)))),
@@ -91,7 +92,6 @@ EVENTS += patterns(
     # run applications
     (MKey('Return'), execute('x-terminal-emulator')),
     (MKey('Shift-Return'), execute('x-terminal-emulator -fg red -e sudo su -')),
-    (MKey('Shift-f'), execute('x-www-browser')),
     (MKey('Shift-b'), execute('set_random_wallpaper.zsh')),
     (MKey('F12'), execute('slock')),
 

@@ -90,8 +90,10 @@ class Watcher(Thread):
         PLUGIN_LOCK.acquire()
         self.__running = False
         for runner in PLUGIN_THREADS:
-            logger.debug('stop statusbar plugin: %s' % name)
+            logger.debug('stop statusbar plugin: %s' % runner.name)
             runner.stop()
+        for runner in PLUGIN_THREADS:
+            runner.join()
         PLUGIN_LOCK.release()
 
     def run(self):
@@ -180,6 +182,7 @@ def stop_statusbar():
     global WATCHER
     logger.debug('stop statusbar watcher')
     WATCHER.stop()
+    WATCHER.join()
 
 # ---------------------------------------------------------------------------
 

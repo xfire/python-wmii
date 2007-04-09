@@ -1,5 +1,5 @@
 ,----
-| python-wmii v0.1
+| python-wmii v0.3
 |   configure and script the wmii window manager the python way
 `----
 
@@ -14,13 +14,13 @@ GPL
 requirements
 ------------
     - python 2.4 or greater
-    - wmii 3.6-rc2
+    - wmii 3.6-rc2 or greater
 
 
 install
 -------
-just extract the contents of the source archive to your wmii configuation
-directory (e.g. $HOME/.wmii-3.5).
+just extract the contents of the directory from the source archive to 
+your wmii configuation directory (e.g. $HOME/.wmii-3.5).
 
 
 configuration
@@ -41,15 +41,15 @@ default key bindings:
     Mod4-Shift-F1..F4       add current client to view
     Mod4-Control-F1..F4     set current client to view
 
-    Mod4-Shift-Up           focus a window above the one current focused
-    Mod4-Shift-Down         focus a window below the one current focused
-    Mod4-Shift-Left         focus a window left the one current focused
-    Mod4-Shift-Right        focus a window right the one current focused
+    Mod4-Shift-Up/k         focus a window above the one current focused
+    Mod4-Shift-Down/j       focus a window below the one current focused
+    Mod4-Shift-Left/h       focus a window left the one current focused
+    Mod4-Shift-Right/l      focus a window right the one current focused
 
-    Mod4-Control-Up         move the current window up
-    Mod4-Control-Down       move the current window down
-    Mod4-Control-Left       move the current window left
-    Mod4-Control-Right      move the current window right
+    Mod4-Control-Up/k       move the current window up
+    Mod4-Control-Down/j     move the current window down
+    Mod4-Control-Left/h     move the current window left
+    Mod4-Control-Right/l    move the current window right
 
     Mod4-Right              switch to the previous view in the list
     Mod4-Left               switch to the next view in the list
@@ -58,8 +58,8 @@ default key bindings:
     Mod4-Shift-Space        add current client to scratchpad
     Mod4-Control-Space      set current client to scratchpad
 
-    Mod4-l                  toggle between managed and floating layer
-    Mod4-Shift-l            move to managed or floating layer
+    Mod4-f                  toggle between managed and floating layer
+    Mod4-Shift-f            move to managed or floating layer
 
     Mod4-Shift-t            prompt for tag to add it to current client
     Mod4-Control-t          prompt for tag to set it to current client
@@ -75,7 +75,6 @@ default key bindings:
 
     Mod4-Return             start an terminal
     Mod4-Shift-Return       start an root terminal
-    Mod4-Shift-f            start an browser
     Mod4-F12                lock screen using slock
 
     Mod4-p                  ask for an application and execute it
@@ -155,9 +154,11 @@ event handler:
         select:             focus client in given direction. (direction will 
                             autodetect h/j/k/l/up/down/left/right on 
                             specified key)
+        SelectSet:          define all four directions for 'select'
         send:               send client to given direction. (direction will 
                             autodetect h/j/k/l/up/down/left/right on 
                             specified key)
+        SendSet:            define all four directions for 'send'
         colmode:            set column mode (default, max, stacked).
         toggle:             toggle layer managed - floating.
         send_toggle:        send current client to mangaged or floating.
@@ -198,10 +199,19 @@ status bar:
 
 changelog
 ---------
-version 0.1 - first version
-version 0.2 - update to reflect changes in dmenu (missing -t), fix some import
-              statements, add try-catch to dmenu
-version 0.3 - rework statusbar code and hopefully make it more robust, rework
-              event handling using a queue (would allow chaining key handlers in
-              the future), add new statusbar plugin from alex which show the
-              current used ip's for each nic interface
+version 0.1
+    - first version
+version 0.2 
+    - update to reflect changes in dmenu (missing -t)
+    - fix some import statements
+    - add try-catch to dmenu
+version 0.3
+    - rework statusbar code and hopefully make it more robust
+    - rework event handling using a queue (would allow chaining key handlers in
+      the future)
+    - add new statusbar plugin from alex which show the current used ip's for 
+      each nic interface
+    - add second column hack to send the second client in a tag to the second 
+      column
+
+

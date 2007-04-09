@@ -29,6 +29,7 @@ EVENTS = patterns(
     (r'^FocusTag', tag_history(15)),
     (r'^UnfocusTag', tag_unfocus),
     (r'^LeftBarClick', view()),
+    (r'^CreateClient', second_column_hack),
 )
 
 # work views (view, add tag, set tag)

@@ -35,7 +35,7 @@ RE_PRESENT_RATE = re.compile(r'^present rate:\s+(?P<rate>\d+).*$')
 RE_AC_ONLINE = re.compile(r'^state:\s*(?P<state>on.line).*$')
 
 def interval():
-    return 2
+    return 5
 
 def update():
     ac_vals = parse_file(FILE_AC, RE_AC_ONLINE)

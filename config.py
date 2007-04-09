@@ -26,7 +26,6 @@ FONT = '-artwiz-snap-*-*-*-*-*-100-*-*-*-*-*-*'
 
 NORMAL_COLORS = Colors(0xb6b4b8, 0x1c2636, 0x0f1729)
 FOCUS_COLORS = Colors(0xffffff, 0x1c2636, 0x0f1729)
-SELECTION_COLORS = Colors(0xa0a0a0, 0x505050, 0x404040)
 
 BAR_NORMAL_COLORS = Colors(0xa0a0a0, 0x505050, 0x404040)
 BAR_FOCUS_COLORS = Colors(0xffffff, 0x1c2636, 0x0f1729)

@@ -62,7 +62,6 @@ p9_write('/event', 'Start wmiirc')
 p9_write('/ctl', (
     'font %s' % FONT,
     'focuscolors %s' % FOCUS_COLORS,
-    'selcolors %s' % SELECTION_COLORS,
     'normcolors %s' % NORMAL_COLORS,
     'border %s' % BORDER,
     'grabmod %s' % MODKEY))

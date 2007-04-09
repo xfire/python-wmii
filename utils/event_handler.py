@@ -433,4 +433,17 @@ class call_dmenu(call):
     def __init__(self, event_map, **kwargs):
         call.__init__(self, dmenu(event_map.keys(), **kwargs), event_map)
 
+# ---------------------------------------------------------------------------
+
+def second_column_hack(event):
+    """move second client in tag to second column. restores old wmii-3.6-rc2 behaviour."""
+    client_id = event.strip().split()[-1]
+    print client_id
+    index = [l.strip() for l in p9_read('/tag/sel/index') if not l.strip().startswith('#') and len(l.strip()) > 0]
+    if len(index) == 2:
+        if index[0][0] == index[1][0] == '1':
+            print 'send %s right' % client_id
+            logger.debug('move 2nd client %s to 2nd column' % (client_id))
+            p9_write('/tag/sel/ctl', 'send %s right' % client_id)
+
 

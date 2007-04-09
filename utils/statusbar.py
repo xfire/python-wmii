@@ -32,7 +32,8 @@ results in no update.
 import os, re
 import logging
 import types
-from threading import Timer, Lock
+import time
+from threading import Thread, Lock
 from utils import *
 
 __all__ = ['start_statusbar', 'stop_statusbar']
@@ -41,25 +42,68 @@ logger = logging.getLogger('utils.statusbar')
 
 POS_RE = re.compile('^(?P<pos>\d{2})_.*$')
 
-RUNNING = True
+WATCHER = None
 PLUGIN_LOCK = Lock()
-PLUGIN_TIMERS = {}
+PLUGIN_THREADS = []
 
-def _update_plugin(name, mod):
-    global RUNNING, PLUGIN_LOCK, PLUGIN_TIMERS
+class PluginRunner(Thread):
+    def __init__(self, name, module):
+        Thread.__init__(self)
+        self.__name = name
+        self.__module = module
+        self.__running = True
 
-    PLUGIN_LOCK.acquire()
-    try:
-        uval = mod.update()
-        if uval:
-            logger.debug('update statusbar plugin: %s %s' % (name, uval))
-            p9_write('/rbar/%s' % name, '%s %s' % uval)
-    except Exception, e:
-        logger.exception(e)
-    if RUNNING:
-        PLUGIN_TIMERS[name] = Timer(mod.interval(), _update_plugin, [name, mod])
-        PLUGIN_TIMERS[name].start()
-    PLUGIN_LOCK.release()
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def module(self):
+        return self.__module
+
+    def stop(self):
+        self.__running = False
+
+    def run(self):
+        while self.__running:
+            try:
+                uval = self.__module.update()
+                if uval:
+                    logger.debug('update statusbar plugin: %s %s' % (self.__name, uval))
+                    p9_write('/rbar/%s' % self.__name, '%s %s' % uval)
+            except Exception, e:
+                logger.exception(e)
+            try:
+                time.sleep(self.__module.interval())
+            except Exception, e:
+                logger.exception(e)
+                time.sleep(5)
+
+class Watcher(Thread):
+    def __init__(self, timeout = 5):
+        Thread.__init__(self)
+        self.__timeout = timeout
+        self.__running = True
+
+    def stop(self):
+        global PLUGIN_LOCK, PLUGIN_THREADS
+        PLUGIN_LOCK.acquire()
+        self.__running = False
+        for runner in PLUGIN_THREADS:
+            logger.debug('stop statusbar plugin: %s' % name)
+            runner.stop()
+        PLUGIN_LOCK.release()
+
+    def run(self):
+        global PLUGIN_LOCK, PLUGIN_THREADS
+        while self.__running:
+            PLUGIN_LOCK.acquire()
+            for i in range(0, len(PLUGIN_THREADS)):
+                if not PLUGIN_THREADS[i].isAlive():
+                    logger.debug('restart statusbar plugin: %s' % PLUGIN_THREADS[i].name)
+                    PLUGIN_THREADS[i] = PluginRunner(PLUGIN_THREADS[i].name, PLUGIN_THREADS[i].module)
+            PLUGIN_LOCK.release()
+            time.sleep(self.__timeout)
 
 def start_statusbar(path, separator = None, start = None, end = None):
     """
@@ -87,7 +131,7 @@ def start_statusbar(path, separator = None, start = None, end = None):
     ! these three values are deprecated, since wmii supports (again) a border between
     ! the /rbar entries.
     """
-    global PLUGIN_LOCK, PLUGIN_TIMERS
+    global WATCHER, PLUGIN_LOCK, PLUGIN_THREADS
 
     # load and initialize plugins
     plugins = {}
@@ -124,19 +168,18 @@ def start_statusbar(path, separator = None, start = None, end = None):
     PLUGIN_LOCK.acquire()
     for name, mod in plugins.iteritems():
         logger.debug('start statusbar plugin: %s' % name)
-        PLUGIN_TIMERS[name] = Timer(mod.interval(), _update_plugin, [name, mod])
-        PLUGIN_TIMERS[name].start()
+        PLUGIN_THREADS.append(PluginRunner(name, mod))
+        PLUGIN_THREADS[-1].start()
     PLUGIN_LOCK.release()
+
+    logger.debug('start statusbar watcher')
+    WATCHER = Watcher()
+    WATCHER.start()
 
 def stop_statusbar():
-    global RUNNING, PLUGIN_LOCK, PLUGIN_TIMERS
-
-    PLUGIN_LOCK.acquire()
-    RUNNING = False
-    for name, timer in PLUGIN_TIMERS.iteritems():
-        logger.debug('stop statusbar plugin: %s' % name)
-        timer.cancel()
-    PLUGIN_LOCK.release()
+    global WATCHER
+    logger.debug('stop statusbar watcher')
+    WATCHER.stop()
 
 # ---------------------------------------------------------------------------
 

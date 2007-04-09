@@ -197,6 +197,22 @@ status bar:
     displayed left of '77_cpu.py', and so on.
 
 
+code
+----
+you can check out the current developer version using git.
+,----
+| git clone http://downgra.de/git/python-wmii.git
+`----
+
+if you want to send me your ideas and changes, append the following steps:
+    - configure git with your name and email address
+      (http://www.kernel.org/pub/software/scm/git/docs/tutorial.html)
+    - git clone http://downgra.de/git/python-wmii.git
+    - apply your changes
+    - commit your changes (git commit -a)
+    - use   git format-patch   to generate the patch files
+    - send the patch files to wmii@downgra.de
+
 changelog
 ---------
 version 0.1
@@ -213,5 +229,6 @@ version 0.3
       each nic interface
     - add second column hack to send the second client in a tag to the second 
       column
+    - update readme.txt
 
 

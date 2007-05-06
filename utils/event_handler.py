@@ -390,9 +390,13 @@ class dmenu(object):
 def application_generator():
     """generate list of applications available in $PATH"""
     apps = set()
-    for p in [path for path in os.environ.get('PATH').split(':')]:
+    validpaths = [path for path in os.environ.get('PATH').split(':') if os.path.exists(path)] 
+    for p in validpaths:
         for f in os.listdir(p):
-            apps.add(f)
+            fullname = p + "/" + f
+            if os.path.isfile(fullname) and os.access(fullname, os.X_OK):
+                apps.add(f)
+                                                            
     for f in sorted(apps):
         yield f
 

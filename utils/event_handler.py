@@ -393,7 +393,7 @@ def application_generator():
     validpaths = [path for path in os.environ.get('PATH').split(':') if os.path.exists(path)] 
     for p in validpaths:
         for f in os.listdir(p):
-            fullname = p + "/" + f
+            fullname = os.path.join(p, f)
             if os.path.isfile(fullname) and os.access(fullname, os.X_OK):
                 apps.add(f)
                                                             

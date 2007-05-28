@@ -1,23 +1,27 @@
 #
 # Copyright (C) 2007 Rico Schiekel (fire at downgra dot de)
-# 
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
 # of the License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # vim:syntax=python:sw=4:ts=4:expandtab
 
-import os, re, subprocess, logging, copy
+import os
+import re
+import subprocess
+import logging
+import copy
 from utils import *
 from utils.ringbuffer import RingBuffer
 from config import BAR_NORMAL_COLORS, BAR_FOCUS_COLORS, SCRATCHPAD, \
@@ -165,7 +169,7 @@ class DirectionSet(object):
     wrapper to create 4 direction event handlers. derive class and overwrite handler() function.
     see 'SelectSet' and 'SendSet'.
     """
-    VIM = 'vim' 
+    VIM = 'vim'
     CURSOR = 'cursor'
     STYLES = dict(cursor = ['Up', 'Down', 'Left', 'Right'], vim = ['h', 'j', 'k', 'l'])
     FUNC = None
@@ -347,8 +351,8 @@ class dmenu(object):
     """
     use dmenu to get an item from a list.
 
-    the list must be given as callable object which returns an python generator 
-    or as list. 
+    the list must be given as callable object which returns an python generator
+    or as list.
     (see application_generator and tag_generator)
     """
     def __init__(self, generator, prompt = None, bottom = True):
@@ -390,13 +394,13 @@ class dmenu(object):
 def application_generator():
     """generate list of applications available in $PATH"""
     apps = set()
-    validpaths = [path for path in os.environ.get('PATH').split(':') if os.path.exists(path)] 
+    validpaths = [path for path in os.environ.get('PATH').split(':') if os.path.exists(path)]
     for p in validpaths:
         for f in os.listdir(p):
             fullname = os.path.join(p, f)
             if os.path.isfile(fullname) and os.access(fullname, os.X_OK):
                 apps.add(f)
-                                                            
+
     for f in sorted(apps):
         yield f
 
@@ -405,7 +409,8 @@ def tag_generator(sort = False):
     ignore = ['sel/']
     avail_v = [t2d(l.rstrip('/')) for l in p9_ls('/tag') if l not in ignore]
 
-    if sort: avail_v.sort()
+    if sort:
+        avail_v.sort()
 
     for tag in avail_v:
         yield tag

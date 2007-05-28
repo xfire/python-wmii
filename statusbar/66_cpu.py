@@ -1,23 +1,24 @@
 #
 # Copyright (C) 2007 Rico Schiekel (fire at downgra dot de)
-# 
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
 # of the License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # vim:syntax=python:sw=4:ts=4:expandtab
 
-import re, logging
+import re
+import logging
 
 from utils import Colors
 from utils.statusbar import parse_file
@@ -33,8 +34,10 @@ RE_TEMP = re.compile(r'^temperature:\s*(?P<temp>\d+)\s+(?P<unit>.*)$')
 
 OLD_STATS = dict(user = 0, system = 0, nice = 0, idle = 0)
 
+
 def interval():
     return 2
+
 
 def update():
     cpu_vals = parse_file('/proc/cpuinfo', RE_CPU)

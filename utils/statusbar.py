@@ -1,16 +1,16 @@
 #
 # Copyright (C) 2007 Rico Schiekel (fire at downgra dot de)
-# 
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
 # of the License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
@@ -19,17 +19,18 @@
 
 """
 this module loads statusbar plugins from a given path.
-these plugins are seen as python modules and must define the method 
+these plugins are seen as python modules and must define the method
 'update()' and 'interval()'.
 
 the interval function must return the time between two update calls.
 
-the update method is called all interval() seconds and must return a 
-tuple in the form (color, text). it can also return None, which 
+the update method is called all interval() seconds and must return a
+tuple in the form (color, text). it can also return None, which
 results in no update.
 """
 
-import os, re
+import os
+import re
 import logging
 import types
 import time
@@ -207,9 +208,9 @@ def parse_file(path_list, regex_list):
         for regex in regex_list:
             match = regex.match(line)
             if match:
-                for k,v in match.groupdict().iteritems():
+                for k, v in match.groupdict().iteritems():
                     ov = ret.get(k, v)
-                    if ret.has_key(k):
+                    if k in ret:
                         ov.append(v)
                     else:
                         ov = [ov]

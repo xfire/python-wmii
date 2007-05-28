@@ -1,23 +1,26 @@
 #
 # Copyright (C) 2007 Rico Schiekel (fire at downgra dot de)
-# 
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
 # of the License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # vim:syntax=python:sw=4:ts=4:expandtab
 
-import os, logging, socket, thread
+import os
+import logging
+import socket
+import thread
 import P9
 
 logger = logging.getLogger('utils.p9_sock')
@@ -43,7 +46,7 @@ def lock(func):
 
 class P9Exception(Exception):
     pass
-    
+
 class P9Client(object):
     ROOT = 23
     def __init__(self):
@@ -63,8 +66,8 @@ class P9Client(object):
 
         self.__rpc = P9.RpcClient(P9.Sock(sock))
 
-        maxbuf,vers = self.__rpc.version(16 * 1024, P9.version)
-        if vers != P9.version :
+        maxbuf, vers = self.__rpc.version(16 * 1024, P9.version)
+        if vers != P9.version:
             raise Error('version mismatch: %r' % vers)
 
         self.__rpc.attach(self.ROOT, P9.nofid, '', '')
@@ -76,7 +79,7 @@ class P9Client(object):
         pstr = path
         root = self.ROOT
         path = filter(None, path.split('/'))
-        try: 
+        try:
             w = self.__rpc.walk(root, fd, path)
         except P9.RpcError, e:
             raise P9Exception('_walk: %s: %s' % (pstr, e.args[0]))
@@ -181,7 +184,7 @@ class P9Client(object):
         for buf in self.__read(fd, 4096):
             p9 = self.__rpc.msg
             p9.setBuf(buf)
-            for sz,t,d,q,m,at,mt,l,name,u,g,mod in p9._decStat(0) :
+            for sz, t, d, q, m, at, mt, l, name, u, g, mod in p9._decStat(0):
                 if m & P9.DIR:
                     name += '/'
                 ret.append(name)

@@ -1,23 +1,25 @@
 #
 # Copyright (C) 2007 Rico Schiekel (fire at downgra dot de)
-# 
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
 # of the License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # vim:syntax=python:sw=4:ts=4:expandtab
 
-import os, re, types
+import os
+import re
+import types
 import subprocess
 import logging
 import threading
@@ -32,12 +34,12 @@ try:
         mod = __import__(impl, globals(), locals(), [])
         if mod.p9_available():
             logger.debug('p9 client [%s] available' % impl)
-            globals().update(dict([(k,v) for k,v in mod.__dict__.iteritems() if k in mod.__all__]))
+            globals().update(dict([(k, v) for k, v in mod.__dict__.iteritems() if k in mod.__all__]))
             break
 except Exception, e:
     logger.exception(e)
 
-if not globals().has_key('p9_available') or not p9_available():
+if not 'p9_available' in globals() or not p9_available():
     raise StandardError('no suitable p9 client found!')
 
 # ---------------------------------------------------------------------------
@@ -46,7 +48,10 @@ EVENT_QUEUE = bdeque.bdeque()
 EVENT_LOOP = True
 EVENT_HANDLER = None
 
+
 class EventHandler(threading.Thread):
+    """event handler thread"""
+
     def __init__(self, handler_list):
         self.__handler_list = handler_list
         threading.Thread.__init__(self)
@@ -66,24 +71,28 @@ class EventHandler(threading.Thread):
             except Exception, e:
                 logger.exception(e)
 
+
 def stop_event_handler():
     global EVENT_LOOP
     EVENT_LOOP = False
+
 
 def add_event(event):
     global EVENT_QUEUE, EVENT_HANDLER
 
     logger.debug('add event: [%s]' % event)
     EVENT_QUEUE.append(event)
-    if not EVENT_HANDLER or not EVENT_HANDLER.isAlive(): 
+    if not EVENT_HANDLER or not EVENT_HANDLER.isAlive():
         from events import EVENTS
         logger.debug('(re)start event handler')
         EVENT_HANDLER = EventHandler(EVENTS)
         EVENT_HANDLER.start()
     return True
 
+
 class EventResolver(object):
     """encapsulate an event handler"""
+
     def __init__(self, regex, handler, default_kwargs = None):
         if callable(regex):
             regex = regex()
@@ -98,6 +107,7 @@ class EventResolver(object):
 
     def __call__(self, event):
         self.__handler(event, **self.__default_kwargs)
+
 
 class Key(object):
     """defines an key. must be used in patterns to define key assignments."""
@@ -130,23 +140,26 @@ class Key(object):
         """return list of all defined keys"""
         return cls.__used_keys
 
+
 class MKey(Key):
     """defines an meta key. must be used in patterns to define meta key assignments."""
+
     def __init__(self, key_desc):
         from config import MODKEY
         Key.__init__(self, '%s-%s' % (MODKEY, key_desc))
 
+
 def patterns(*tuples):
     """
-    used to create the EVENT list. 
-    
-    take callable objects or tuples as parameters. 
-    
-    callable objects should return: 
+    used to create the EVENT list.
+
+    take callable objects or tuples as parameters.
+
+    callable objects should return:
         - one or more regular expressions as string or precompiled 're' objects
         - one or more EventResolver objects (SendSet)
 
-    tuples must have have first the regex to match or a callable object which returns 
+    tuples must have have first the regex to match or a callable object which returns
     the regex. (see Key, MKey)
     the second object in the tuple must be the event handler, which must be a callable
     object.
@@ -193,9 +206,10 @@ def patterns(*tuples):
                     logger.warn('no handler defined: "%s"' % r)
     return resolver_list
 
+
 def autostart():
     """
-    run $WMII_CONFPATH/autostart.sh to autostart user defined applications at wmii 
+    run $WMII_CONFPATH/autostart.sh to autostart user defined applications at wmii
     start.
     """
     WMII_CONFPATH = os.environ.get('WMII_CONFPATH', [])
@@ -212,10 +226,12 @@ def autostart():
 TAG_MAPPING_T2D = {}
 TAG_MAPPING_D2T = {}
 
+
 def init_tag_mappings(tmap):
     for dname, tag in tmap:
         TAG_MAPPING_T2D[tag] = dname
         TAG_MAPPING_D2T[dname] = tag
+
 
 class tag_mapping_wrapper(object):
     """lazy tag mapping for callable objects like dmenu"""
@@ -226,12 +242,14 @@ class tag_mapping_wrapper(object):
     def __call__(self):
         return self.__map_func(self.__call_func())
 
+
 def t2d(tag):
     """map real tag name to the display name. (tag can be callable for lazy mapping)"""
     if callable(tag):
         return tag_mapping_wrapper(t2d, tag)
     logger.debug('tag2display: %s', tag)
     return TAG_MAPPING_T2D.get(tag, tag)
+
 
 def d2t(dname):
     """map display name to the real tag name. (dname can be callable for lazy mapping)"""
@@ -242,6 +260,7 @@ def d2t(dname):
 
 # ---------------------------------------------------------------------------
 
+
 def active_view():
     """return the active view."""
     act_v = [l for l in p9_read('/ctl') if l.startswith('view ')]
@@ -251,7 +270,10 @@ def active_view():
 
 # ---------------------------------------------------------------------------
 
+
 class Colors(object):
+    """represents a wmii color"""
+
     def __init__(self, foreground, background, border = 0):
         self.__foreground, self.__background, self.__border = foreground, background, border
 
@@ -259,11 +281,14 @@ class Colors(object):
         return '#%.6X #%.6X #%.6X' % (self.__foreground, self.__background, self.__border)
 
     @property
-    def foreground(self): return self.__foreground
+    def foreground(self):
+        return self.__foreground
 
     @property
-    def background(self): return self.__background
+    def background(self):
+        return self.__background
 
     @property
-    def border(self): return self.__background
+    def border(self):
+        return self.__background
 

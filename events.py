@@ -1,16 +1,16 @@
 #
 # Copyright (C) 2007 Rico Schiekel (fire at downgra dot de)
-# 
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
 # of the License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
@@ -60,7 +60,9 @@ EVENTS += patterns(
 
     # switch to next or previous view
     (MKey('Right'), view_next),
+    (MKey('l'), view_next),
     (MKey('Left'), view_prev),
+    (MKey('h'), view_prev),
 
     # scratch pad
     (MKey('space'), toggle_scratchpad),
@@ -100,7 +102,7 @@ EVENTS += patterns(
     (MKey('p'), execute(dmenu(application_generator))),
 )
 
-APPLICATIONS = dict(quit = quit, 
+APPLICATIONS = dict(quit = quit,
                     lock = execute('slock'),
                     mail = execute('start.mail'),
                     firefox = execute('firefox'),

@@ -1,4 +1,4 @@
-python-wmii v0.3
+python-wmii v0.4
 ================
 configure and script the wmii window manager the python way
 
@@ -211,6 +211,14 @@ you can check out the current developer version using
     hg clone http://downgra.de/hg/python-wmii
 
 if you want to send me your ideas and changes, append the following steps:
+
+   1. configure mercurial with your name and email address
+      (<http://hgbook.red-bean.com/hgbookch2.html#x6-400002.7>)
+   2. `hg clone http://downgra.de/hg/python-wmii`
+   3. apply your changes
+   4. commit your changes (goto step 3 if necessary)
+   5. use patchbombs `hg email` to send the changes to <mailto:wmii@downgra.de>
+      (`hg email -a -f <your@mail.addr> -t wmii@downgra.de`)
 
 changelog
 ---------

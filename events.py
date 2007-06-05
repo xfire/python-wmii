@@ -23,13 +23,17 @@ from utils.event_handler import *
 
 EVENTS = patterns(
     (r'^Start wmiirc$', fwrap(sys.exit, 0)),
-    (r'^CreateTag', tag_create),
-    (r'^DestroyTag', tag_destroy),
-    (r'^FocusTag', tag_focus),
+    (r'^CreateTag', tag_create()),
+    (r'^DestroyTag', tag_destroy()),
+    (r'^FocusTag', tag_focus()),
     (r'^FocusTag', tag_history(15)),
-    (r'^UnfocusTag', tag_unfocus),
+    (r'^UnfocusTag', tag_unfocus()),
+    (r'^CreateClient', second_column_hack()),
     (r'^LeftBarClick', view()),
-    (r'^CreateClient', second_column_hack),
+    (r'^LeftBarClick', wheel_view()),
+    (r'^ClientMouseDown', call(wmii9menu(['nop', 'close']), dict(close = kill()))),
+    (r'^UrgentTag', tag_urgent()),
+    (r'^NotUrgentTag', tag_not_urgent()),
 )
 
 # work views (view, add tag, set tag)
@@ -59,27 +63,27 @@ EVENTS += patterns(
     SendSet(MKey('Control-'), SendSet.CURSOR),
 
     # switch to next or previous view
-    (MKey('Right'), view_next),
-    (MKey('l'), view_next),
-    (MKey('Left'), view_prev),
-    (MKey('h'), view_prev),
+    (MKey('Right'), next_view()),
+    (MKey('l'), next_view()),
+    (MKey('Left'), prev_view()),
+    (MKey('h'), prev_view()),
 
     # scratch pad
-    (MKey('space'), toggle_scratchpad),
+    (MKey('space'), toggle_scratchpad()),
     (MKey('Shift-Space'), add_tag(d2t(SCRATCHPAD))),
     (MKey('Ctrl-Space'), set_tag(d2t(SCRATCHPAD))),
 
     # history
-    (MKey('plus'), history_next),
-    (MKey('minus'), history_prev),
+    (MKey('plus'), history_next()),
+    (MKey('minus'), history_prev()),
 
     # toggle between managed and floating layer
-    (MKey('f'), toggle),
-    (MKey('Shift-f'), send_toggle),
+    (MKey('f'), toggle()),
+    (MKey('Shift-f'), send_toggle()),
 
     # add/set tag for current client selected using dmenu
-    (MKey('Shift-t'), add_tag(d2t(dmenu(tag_generator)))),
-    (MKey('Control-t'), set_tag(d2t(dmenu(tag_generator)))),
+    (MKey('Shift-t'), add_tag(d2t(dmenu(tag_generator())))),
+    (MKey('Control-t'), set_tag(d2t(dmenu(tag_generator())))),
 
     # remove current client from view
     (MKey('Shift-u'), remove_tag(active_view)),
@@ -90,7 +94,7 @@ EVENTS += patterns(
     (MKey('d'), colmode()),
     (MKey('m'), colmode('max')),
     # kill client
-    (MKey('Control-c'), kill),
+    (MKey('Control-c'), kill()),
 
     # run applications
     (MKey('Return'), execute('x-terminal-emulator')),
@@ -99,10 +103,10 @@ EVENTS += patterns(
     (MKey('F12'), execute('slock')),
 
     # run application selected using dmenu
-    (MKey('p'), execute(dmenu(application_generator))),
+    (MKey('p'), execute(dmenu(application_generator()))),
 )
 
-APPLICATIONS = dict(quit = quit,
+APPLICATIONS = dict(quit = quit(),
                     lock = execute('slock'),
                     mail = execute('start.mail'),
                     firefox = execute('firefox'),

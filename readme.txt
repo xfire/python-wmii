@@ -135,7 +135,7 @@ event handler:
                 print 'other_handler: %s - %s' % (event, self.__myparam)
 
         EVENTS += patterns(
-            (r'^.*$', my_handler),
+            (r'^.*$', my_handler()),
             (r'^.*$', other_handler('foo')),
         )
 
@@ -144,8 +144,8 @@ event handler:
 
     default event handlers:
         view:               switch to a view.
-        view_next:          switch to next view. (excluding scratchpad)
-        view_prev:          switch to previous view. (excluding scratchpad)
+        next_view:          switch to next view. (excluding scratchpad)
+        prev_view:          switch to previous view. (excluding scratchpad)
         add_tag:            add tag to current client. other tag settings are 
                             preserved.
         set_tag:            set tag to current client. other tag settings are 

@@ -39,7 +39,7 @@ logger = logging.getLogger('wmiirc')
 WMII_CONFPATH = os.environ.get('WMII_CONFPATH', []).split(':')[0]
 
 # define plan9 file system mount point
-if not os.environ.has_key('PLAN9_FS_MOUNT_POINT'):
+if not 'PLAN9_FS_MOUNT_POINT' in os.environ:
     os.environ.setdefault('PLAN9_FS_MOUNT_POINT', os.path.join(WMII_CONFPATH, 'fs'))
 
 from config import *

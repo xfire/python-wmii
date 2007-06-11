@@ -22,96 +22,97 @@ from utils import patterns, t2d
 from utils.event_handler import *
 
 EVENTS = patterns(
-    (r'^Start wmiirc$', fwrap(sys.exit, 0)),
-    (r'^CreateTag', tag_create()),
-    (r'^DestroyTag', tag_destroy()),
-    (r'^FocusTag', tag_focus()),
-    (r'^FocusTag', tag_history(15)),
-    (r'^UnfocusTag', tag_unfocus()),
-    (r'^CreateClient', second_column_hack()),
-    (r'^LeftBarClick', view()),
-    (r'^LeftBarClick', wheel_view()),
-    (r'^ClientMouseDown', call(wmii9menu(['nop', 'close']), dict(close = kill()))),
-    (r'^UrgentTag', tag_urgent()),
-    (r'^NotUrgentTag', tag_not_urgent()),
+    (r'^Start wmiirc$', FWrap(sys.exit, 0)),
+    (r'^CreateTag', TagCreate()),
+    (r'^DestroyTag', TagDestroy()),
+    (r'^FocusTag', TagFocus()),
+    (r'^FocusTag', TagHistory(15)),
+    (r'^UnfocusTag', TagUnfocus()),
+    (r'^CreateClient', SecondColumnHack()),
+    (r'^LeftBarClick', View()),
+    (r'^LeftBarClick', WheelView()),
+    (r'^ClientMouseDown', Call(WMII9Menu(['nop', 'close']), dict(close = Kill()))),
+    (r'^UrgentTag', TagUrgent()),
+    (r'^NotUrgentTag', TagNotUrgent()),
 )
 
 # work views (view, add tag, set tag)
 for i in range(1, 10):
     EVENTS += patterns(
-        (MKey('%d' % i), view(str(i))),
-        (MKey('Shift-%d' % i), add_tag(str(i))),
-        (MKey('Control-%d' % i), set_tag(str(i))),
+        (MKey('%d' % i), View(str(i))),
+        (MKey('Shift-%d' % i), AddTag(str(i))),
+        (MKey('Control-%d' % i), SetTag(str(i))),
     )
 
 # named views (view, add tag, set tag)
 NAMED_VIEWS = ['mail', 'browser', 'irssi_downgra_de', 'irssi_logix_tt', 'logs']
 for i in range(0, len(NAMED_VIEWS)):
     EVENTS += patterns(
-        (MKey('F%d' % (i+1)), view(d2t(NAMED_VIEWS[i]))),
-        (MKey('Shift-F%d' % (i+1)), add_tag(d2t(NAMED_VIEWS[i]))),
-        (MKey('Control-F%d' % (i+1)), set_tag(d2t(NAMED_VIEWS[i]))),
+        (MKey('F%d' % (i+1)), View(d2t(NAMED_VIEWS[i]))),
+        (MKey('Shift-F%d' % (i+1)), AddTag(d2t(NAMED_VIEWS[i]))),
+        (MKey('Control-F%d' % (i+1)), SetTag(d2t(NAMED_VIEWS[i]))),
     )
 
 EVENTS += patterns(
     # focus up/down/left/right/h/j/k/l client
     SelectSet(MKey('Shift-'), SelectSet.VIM),
     SelectSet(MKey('Shift-'), SelectSet.CURSOR),
+    (MKey('Tab'), Select('down')),
 
     # move selected client up/down/left/right/h/j/k/l
     SendSet(MKey('Control-'), SendSet.VIM),
     SendSet(MKey('Control-'), SendSet.CURSOR),
 
     # switch to next or previous view
-    (MKey('Right'), next_view()),
-    (MKey('l'), next_view()),
-    (MKey('Left'), prev_view()),
-    (MKey('h'), prev_view()),
+    (MKey('Right'), NextView()),
+    (MKey('l'), NextView()),
+    (MKey('Left'), PrevView()),
+    (MKey('h'), PrevView()),
 
     # scratch pad
-    (MKey('space'), toggle_scratchpad()),
-    (MKey('Shift-Space'), add_tag(d2t(SCRATCHPAD))),
-    (MKey('Ctrl-Space'), set_tag(d2t(SCRATCHPAD))),
+    (MKey('space'), ToggleScratchPad()),
+    (MKey('Shift-Space'), AddTag(d2t(SCRATCHPAD))),
+    (MKey('Ctrl-Space'), SetTag(d2t(SCRATCHPAD))),
 
     # history
-    (MKey('plus'), history_next()),
-    (MKey('minus'), history_prev()),
+    (MKey('plus'), HistoryNext()),
+    (MKey('minus'), HistoryPrev()),
 
     # toggle between managed and floating layer
-    (MKey('f'), toggle()),
-    (MKey('Shift-f'), send_toggle()),
+    (MKey('f'), Toggle()),
+    (MKey('Shift-f'), SendToggle()),
 
     # add/set tag for current client selected using dmenu
-    (MKey('Shift-t'), add_tag(d2t(dmenu(tag_generator())))),
-    (MKey('Control-t'), set_tag(d2t(dmenu(tag_generator())))),
+    (MKey('Shift-t'), AddTag(d2t(DMenu(TagGenerator())))),
+    (MKey('Control-t'), SetTag(d2t(DMenu(TagGenerator())))),
 
     # remove current client from view
-    (MKey('Shift-u'), remove_tag(active_view)),
-    (MKey('Control-u'), set_tag(active_view)),
+    (MKey('Shift-u'), RemoveTag(active_view)),
+    (MKey('Control-u'), SetTag(active_view)),
 
     # switch column modes
-    (MKey('s'), colmode('stack')),
-    (MKey('d'), colmode()),
-    (MKey('m'), colmode('max')),
+    (MKey('s'), ColMode('stack')),
+    (MKey('d'), ColMode()),
+    (MKey('m'), ColMode('max')),
     # kill client
-    (MKey('Control-c'), kill()),
+    (MKey('Control-c'), Kill()),
 
     # run applications
-    (MKey('Return'), execute('x-terminal-emulator')),
-    (MKey('Shift-Return'), execute('x-terminal-emulator -fg red -e sudo su -')),
-    (MKey('Shift-b'), execute('set_random_wallpaper.zsh')),
-    (MKey('F12'), execute('slock')),
+    (MKey('Return'), Execute('x-terminal-emulator')),
+    (MKey('Shift-Return'), Execute('x-terminal-emulator -fg red -e sudo su -')),
+    (MKey('Shift-b'), Execute('set_random_wallpaper.zsh')),
+    (MKey('F12'), Execute('slock')),
 
     # run application selected using dmenu
-    (MKey('p'), execute(dmenu(application_generator()))),
+    (MKey('p'), Execute(DMenu(ApplicationGenerator()))),
 )
 
-APPLICATIONS = dict(quit = quit(),
-                    lock = execute('slock'),
-                    mail = execute('start.mail'),
-                    firefox = execute('firefox'),
-                    opera = execute('opera'),
-                    wallpaper = execute('set_random_wallpaper.zsh'))
+APPLICATIONS = dict(quit = Quit(),
+                    lock = Execute('slock'),
+                    mail = Execute('start.mail'),
+                    firefox = Execute('firefox'),
+                    opera = Execute('opera'),
+                    wallpaper = Execute('set_random_wallpaper.zsh'))
 EVENTS += patterns(
-    (MKey('a'), call_dmenu(APPLICATIONS)),
+    (MKey('a'), CallDMenu(APPLICATIONS)),
 )

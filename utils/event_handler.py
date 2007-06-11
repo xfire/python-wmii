@@ -31,7 +31,7 @@ logger = logging.getLogger('utils.event_handler')
 
 # ---------------------------------------------------------------------------
 
-class fwrap(object):
+class FWrap(object):
     """
     warp calls to functions with arguments. both unnamed and named
     arguments are supported.
@@ -46,7 +46,7 @@ class fwrap(object):
 
 # ---------------------------------------------------------------------------
 
-class view(object):
+class View(object):
     """
     switch to a view.
 
@@ -87,7 +87,7 @@ class view(object):
         avail_v = [l.rstrip('/') for l in p9_ls('/tag') if l not in ignore]
         return sorted(avail_v)
 
-class wheel_view(object):
+class WheelView(object):
     """
     if the mouse button is '4' or '5' (mouse wheel up/down), this handler switch to the
     next/previous view.
@@ -97,16 +97,16 @@ class wheel_view(object):
             button = event.strip().split()[-2]
             logger.debug('view_wheel: event[%s], button[%s]' % (event, button))
             if button == '4':
-                prev_view()()
+                PrevView()()
             elif button == '5':
-                next_view()()
+                NextView()()
         except Exception, e:
             logger.exception(e)
 
-class next_view(view):
+class NextView(View):
     """switch to next view. (excluding scratchpad)"""
     def __init__(self, ignore_scratchpad = True):
-        view.__init__(self)
+        View.__init__(self)
         self.__ignore_scratchpad = ignore_scratchpad
 
     def __call__(self, event = None):
@@ -114,12 +114,12 @@ class next_view(view):
         avail_views = self._get_views(self.__ignore_scratchpad)
         next_view = avail_views[(avail_views.index(act_view) + 1) % len(avail_views)]
         logger.debug('next_view: %s (act view: %s)' % (next_view, act_view))
-        view.__call__(self, tag = next_view)
+        View.__call__(self, tag = next_view)
 
-class prev_view(view):
+class PrevView(View):
     """switch to previous view. (excluding scratchpad)"""
     def __init__(self, ignore_scratchpad = True):
-        view.__init__(self)
+        View.__init__(self)
         self.__ignore_scratchpad = ignore_scratchpad
 
     def __call__(self, event = None):
@@ -127,11 +127,11 @@ class prev_view(view):
         avail_views = self._get_views(self.__ignore_scratchpad)
         prev_view = avail_views[(avail_views.index(act_view) - 1) % len(avail_views)]
         logger.debug('prev_view: %s (act view: %s)' % (prev_view, act_view))
-        view.__call__(self, tag = prev_view)
+        View.__call__(self, tag = prev_view)
 
 # ---------------------------------------------------------------------------
 
-class set_tag(object):
+class SetTag(object):
     """set tag to current client. other tag settings are overwritten."""
     def __init__(self, tag = None):
         self.__tag = tag
@@ -143,7 +143,7 @@ class set_tag(object):
         logger.debug('%s: event[%s], tag[%s]' % (self.__class__.__name__, event, tag))
         p9_write('/client/sel/tags', tag)
 
-class add_tag(object):
+class AddTag(object):
     """add tag to current client. other tag settings are preserved."""
     def __init__(self, tag = None):
         self.__tag = tag
@@ -158,7 +158,7 @@ class add_tag(object):
         logger.debug('%s: event[%s], tag[%s], tag_list[%s]' % (self.__class__.__name__, event, tag, tag_list))
         p9_write('/client/sel/tags', tag_list)
 
-class remove_tag(object):
+class RemoveTag(object):
     """remove tag from current client."""
     def __init__(self, tag = None):
         self.__tag = tag
@@ -173,7 +173,7 @@ class remove_tag(object):
         logger.debug('%s: event[%s], tag[%s], tag_list[%s]' % (self.__class__.__name__, event, tag, tag_list))
         p9_write('/client/sel/tags', tag_list)
 
-class tag_create(object):
+class TagCreate(object):
     """add left bar entry on tag creation."""
     def __call__(self, event):
         tag = event.strip().split()[-1]
@@ -181,7 +181,7 @@ class tag_create(object):
             logger.debug('tag_create: event[%s], tag[%s]' % (event, tag))
             p9_create('/lbar/%s' % tag, '%s %s' % (BAR_NORMAL_COLORS, t2d(tag)))
 
-class tag_destroy(object):
+class TagDestroy(object):
     """destroy left bar entry on tag deletion."""
     def __call__(self, event):
         tag = event.strip().split()[-1]
@@ -189,7 +189,7 @@ class tag_destroy(object):
             logger.debug('tag_destroy: event[%s], tag[%s]' % (event, tag))
             p9_remove('/lbar/%s' % tag)
 
-class tag_focus(object):
+class TagFocus(object):
     """set bar focus colors if a tag is focused."""
     def __call__(self, event):
         tag = event.strip().split()[-1]
@@ -197,7 +197,7 @@ class tag_focus(object):
             logger.debug('tag_focus: event[%s], tag[%s]' % (event, tag))
             p9_write('/lbar/%s' % tag, '%s %s' % (BAR_FOCUS_COLORS, t2d(tag)))
 
-class tag_unfocus(object):
+class TagUnfocus(object):
     """set bar normal colors if a tag is unfocused."""
     def __call__(self, event):
         tag = event.strip().split()[-1]
@@ -205,7 +205,7 @@ class tag_unfocus(object):
             logger.debug('tag_unfocus: event[%s], tag[%s]' % (event, tag))
             p9_write('/lbar/%s' % tag, '%s %s' % (BAR_NORMAL_COLORS, t2d(tag)))
 
-class tag_urgent(object):
+class TagUrgent(object):
     """mark an tag urgent"""
     def __call__(self, event):
         tag = event.strip().split()[-1]
@@ -213,7 +213,7 @@ class tag_urgent(object):
             logger.debug('tag_urgent: event[%s], tag[%s]' % (event, tag))
             p9_write('/lbar/%s' % tag, '*' + t2d(tag))
 
-class tag_not_urgent(object):
+class TagNotUrgent(object):
     """unmark an tag urgent"""
     def __call__(self, event):
         tag = event.strip().split()[-1]
@@ -238,7 +238,7 @@ class DirectionNormalizer(object):
                     pass
         return direction
 
-class select(DirectionNormalizer):
+class Select(DirectionNormalizer):
     """focus client in given direction. (direction will autodetect h/j/k/l/up/down/left/right on specified key)"""
     def __init__(self, direction = None):
         self.__direction = direction
@@ -250,7 +250,7 @@ class select(DirectionNormalizer):
         logger.debug('select: direction[%s]' % direction)
         p9_write('/tag/sel/ctl', 'select %s' % direction)
 
-class send(DirectionNormalizer):
+class Send(DirectionNormalizer):
     """send client to given direction. (direction will autodetect h/j/k/l/up/down/left/right on specified key)"""
     def __init__(self, direction = None):
         self.__direction = direction
@@ -292,21 +292,21 @@ class DirectionSet(object):
 
 class SelectSet(DirectionSet):
     def handler(self):
-        return select()
+        return Select()
 
 class SendSet(DirectionSet):
     def handler(self):
-        return send()
+        return Send()
 
 # ---------------------------------------------------------------------------
 
-class toggle(object):
+class Toggle(object):
     """toggle layer managed - floating."""
     def __call__(self, event):
         logger.debug('toggle: event[%s]' % event)
         p9_write('/tag/sel/ctl', 'select toggle')
 
-class send_toggle(object):
+class SendToggle(object):
     def __call__(self, event):
         """send current client to mangaged or floating."""
         logger.debug('send_toggle: event[%s]' % event)
@@ -318,7 +318,7 @@ HISTORY = RingBuffer(10)
 HISTORY_POS = -1
 HISTORY_IGNORE_NEXT = False
 HISTORY_DELETE = False
-class tag_history(object):
+class TagHistory(object):
     def __init__(self, max = 20):
         global HISTORY, HISTORY_POS, HISTORY_IGNORE_NEXT, HISTORY_DELETE
         HISTORY = RingBuffer(max)
@@ -347,27 +347,27 @@ class tag_history(object):
             HISTORY_IGNORE_NEXT = False
             HISTORY_DELETE = True
 
-class history_prev(object):
+class HistoryPrev(object):
     def __call__(self, event):
         global HISTORY, HISTORY_POS, HISTORY_IGNORE_NEXT
         if HISTORY_POS > 0:
             HISTORY_POS -= 1
             HISTORY_IGNORE_NEXT = True
             logger.debug('history prev: %s' % HISTORY[HISTORY_POS])
-            view(HISTORY[HISTORY_POS])()
+            View(HISTORY[HISTORY_POS])()
 
-class history_next(object):
+class HistoryNext(object):
     def __call__(self, event):
         global HISTORY, HISTORY_POS, HISTORY_IGNORE_NEXT
         if HISTORY_POS < len(HISTORY) - 1:
             HISTORY_POS += 1
             HISTORY_IGNORE_NEXT = True
             logger.debug('history next: %s' % HISTORY[HISTORY_POS])
-            view(HISTORY[HISTORY_POS])()
+            View(HISTORY[HISTORY_POS])()
 
 # ---------------------------------------------------------------------------
 
-class execute(object):
+class Execute(object):
     """execute cmd. if cmd is callable, first call cmd to get application path."""
     def __init__(self, cmd):
         self.__cmd = cmd
@@ -383,19 +383,19 @@ class execute(object):
             except Exception, e:
                 logger.exception(e)
 
-class kill(object):
+class Kill(object):
     def __call__(self, event = None):
         """kill current client."""
         logger.debug('kill')
         p9_write('/client/sel/ctl', 'kill')
 
-class quit(object):
+class Quit(object):
     def __call__(self, event = None):
         """quit wmii."""
         logger.debug('quit')
         p9_write('/ctl', 'quit')
 
-class colmode(object):
+class ColMode(object):
     """set column mode (default, max, stacked)."""
     def __init__(self, mode = 'default'):
         self.__mode = mode
@@ -411,23 +411,23 @@ class colmode(object):
 # ---------------------------------------------------------------------------
 
 SCRATCHPAD_ORG_VIEW = SCRATCHPAD
-class toggle_scratchpad(object):
+class ToggleScratchPad(object):
     def __call__(self, event):
         """warp to scratch pad or back to previous view."""
         global SCRATCHPAD_ORG_VIEW
         act_view = active_view()
         if act_view == SCRATCHPAD:  # warp back from scratch pad
             logger.debug('toggle_scratchpad: event[%s], to[%s]' % (event, SCRATCHPAD_ORG_VIEW))
-            view(SCRATCHPAD_ORG_VIEW)()
+            View(SCRATCHPAD_ORG_VIEW)()
         else:  # warp to scratch pad
             SCRATCHPAD_ORG_VIEW = act_view
             logger.debug('toggle_scratchpad: event[%s], to[%s]' % (event, SCRATCHPAD))
-            view(SCRATCHPAD)()
+            View(SCRATCHPAD)()
 
 # ---------------------------------------------------------------------------
 
 DMENU_PATH = 'dmenu'
-class dmenu(object):
+class DMenu(object):
     """
     use dmenu to get an item from a list.
 
@@ -471,7 +471,7 @@ class dmenu(object):
         return ''
 
 WMII9PATH = 'wmii9menu'
-class wmii9menu(object):
+class WMII9Menu(object):
     """
     use wmii9menu to get an item from a list.
 
@@ -509,7 +509,7 @@ class wmii9menu(object):
 
 # ---------------------------------------------------------------------------
 
-class application_generator(object):
+class ApplicationGenerator(object):
     def __call__(self):
         """generate list of applications available in $PATH"""
         apps = set()
@@ -523,7 +523,7 @@ class application_generator(object):
         for f in sorted(apps):
             yield f
 
-class tag_generator(object):
+class TagGenerator(object):
     def __init__(self, sort = False):
         self.__sort = sort
 
@@ -540,11 +540,11 @@ class tag_generator(object):
 
 # ---------------------------------------------------------------------------
 
-class call(object):
+class Call(object):
     """
     use callable event_source object to find proper event in event map.
     eg.
-        (MKey('a'), call(dmenu(['quit', 'gimp']), dict(quit = quit, gimp = execute('gimp')))),
+        (MKey('a'), Call(dmenu(['quit', 'gimp']), dict(quit = quit, gimp = execute('gimp')))),
     """
     def __init__(self, event_source, event_map):
         self.__event_source = event_source
@@ -556,27 +556,27 @@ class call(object):
         if ev:
             ev(event)
 
-class call_dmenu(call):
+class CallDMenu(Call):
     """
     simple wrapper for easier menu generation.
     eg.
         (MKey('a'), call_dmenu(dict(quit = quit, gimp = execute('gimp')))),
     """
     def __init__(self, event_map, **kwargs):
-        call.__init__(self, dmenu(event_map.keys(), **kwargs), event_map)
+        Call.__init__(self, DMenu(event_map.keys(), **kwargs), event_map)
 
-class call_wmii9menu(call):
+class CallWMII9Menu(Call):
     """
     simple wrapper for easier menu generation.
     eg.
         (MKey('a'), call_wmii9menu(dict(quit = quit, gimp = execute('gimp')))),
     """
     def __init__(self, event_map, **kwargs):
-        call.__init__(self, wmii9menu(event_map.keys(), **kwargs), event_map)
+        Call.__init__(self, WMII9Menu(event_map.keys(), **kwargs), event_map)
 
 # ---------------------------------------------------------------------------
 
-class second_column_hack(object):
+class SecondColumnHack(object):
     def __call__(self, event):
         """move second client in tag to second column. restores old wmii-3.6-rc2 behaviour."""
         client_id = event.strip().split()[-1]

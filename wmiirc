@@ -68,7 +68,7 @@ p9_write('/ctl', (
 
 p9_write('/colrules', COL_RULES)
 p9_write('/tagrules', TAG_RULES)
-p9_write('/keys', Key.used_keys())
+p9_write('/keys', EventResolver.used_keys())
 
 # init statusbar
 start_statusbar(os.path.join(WMII_CONFPATH, 'statusbar'),

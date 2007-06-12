@@ -24,6 +24,7 @@ import subprocess
 import logging
 import threading
 import bdeque
+import warnings
 
 logger = logging.getLogger('utils')
 
@@ -62,7 +63,7 @@ class EventHandler(threading.Thread):
             event = EVENT_QUEUE.popleft()
             try:
                 logger.debug('dispatch event: [%s]' % event)
-                if type(event) in types.StringTypes:
+                if isinstance(event, types.StringTypes):
                     # call every matching event handler
                     [handler(event) for handler in self.__handler_list if handler.match(event)]
                 elif callable(event):
@@ -92,61 +93,74 @@ def add_event(event):
 
 class EventResolver(object):
     """encapsulate an event handler"""
+    __used_keys = set()
 
-    def __init__(self, regex, handler, default_kwargs = None):
+    re_type = type(re.compile('foobar'))
+    def __init__(self, regex, handler, default_args = None):
         if callable(regex):
             regex = regex()
-        if type(regex) in types.StringTypes:
-            regex = re.compile(regex)
-        self.__regex = regex
+        if isinstance(regex, types.StringTypes):
+            try:
+                self.__regex = re.compile(regex)
+            except Exception, e:
+                raise TypeError('Invalid event expression "%s": %s' % (regex, str(e)))
+        elif isinstance(regex, EventResolver.re_type):
+            self.__regex = regex
+        else:
+            raise TypeError('Invalid event expression: %s' % regex)
+
+        if not handler:
+            raise TypeError('no handler defined: "%s"' % regex)
+        if not callable(handler):
+            raise TypeError('Handler not callable: %s' % str(handler))
         self.__handler = handler
-        self.__default_kwargs = default_kwargs or {}
+
+        self.__default_args = default_args or ()
+
+        # register key if any
+        key = self.__get_key(self.__regex.pattern)
+        if key:
+            self.__used_keys.add(key)
 
     def match(self, event):
         return self.__regex.match(event)
 
     def __call__(self, event):
-        self.__handler(event, **self.__default_kwargs)
+        self.__handler(event, *self.__default_args)
 
-
-class Key(object):
-    """defines an key. must be used in patterns to define key assignments."""
-    __used_keys = set()
-
-    def __init__(self, key_desc):
-        self.__key_desc = key_desc
-
-    def __str__(self):
-        return self.__key_desc
-
-    def __call__(self):
-        self.__used_keys.add(self.__key_desc)
-        return r'^Key %s$' % self
-
-    def set(self, key_desc):
-        """set new key definition"""
-        self.__key_desc = key_desc
-
-    def add(self, key_desc):
-        """add key_desc to key defintion"""
-        self.__key_desc += key_desc
-
-    def replace(self, old, new, count = -1):
-        """replace old to new in key defintion"""
-        self.__key_desc = self.__key_desc.replace(old, new, count)
+    RE_KEY_REGEX = re.compile(r'^\^?Key (?P<key>.*)$')
+    def __get_key(self, regex_pattern):
+        """return the key, if it matches RE_KEY_REGEX, else None"""
+        if isinstance(regex_pattern, types.StringTypes):
+            match = EventResolver.RE_KEY_REGEX.search(regex_pattern)
+            if match:
+                return match.groupdict().get('key')
+        return None
 
     @classmethod
     def used_keys(cls):
         """return list of all defined keys"""
-        return cls.__used_keys
+        return list(cls.__used_keys)
+
+class Key(str):
+    """*DEPRECATED* defines an key."""
+    def __init__(self, value):
+        warnings.warn('classes Key and MKey are deprecated. please use simple regular expressions.', DeprecationWarning)
+
+    def __call__(self):
+        return r'^Key %s$' % self
 
 
 class MKey(Key):
-    """defines an meta key. must be used in patterns to define meta key assignments."""
-
-    def __init__(self, key_desc):
-        from config import MODKEY
-        Key.__init__(self, '%s-%s' % (MODKEY, key_desc))
+    """*DEPRECATED* defines an meta key."""
+    def __new__(cls, value):
+        mk = ''
+        try:
+            import config
+            mk = '%s-' % config.MODKEY
+        except:
+            logger.warn('MKey() used, but config.MODKEY not defined!')
+        return Key.__new__(cls, ''.join((mk, value)))
 
 
 def patterns(*tuples):
@@ -154,29 +168,42 @@ def patterns(*tuples):
     used to create the EVENT list.
 
     take callable objects or tuples as parameters.
+    the return value of those callable objects or those tuples must have first the regex 
+    to match or a callable object which returns the regex.
 
-    callable objects should return:
-        - one or more regular expressions as string or precompiled 're' objects
-        - one or more EventResolver objects (SendSet)
-
-    tuples must have have first the regex to match or a callable object which returns
-    the regex. (see Key, MKey)
     the second object in the tuple must be the event handler, which must be a callable
-    object.
+    object. this can be a function or a class instance which implements __call__. the 
+    second is the preferred way, especially if default parameters must be specified.
+
+    the third and all following elements in the tuple are taken as default parameters
+    for the handler. use this, if your handler is not a callable class instance.
 
     eg.
+        def my_handler(event):
+            # normal event handler
+            ...
+        def my_meta4_shift_r_handler(event, second_parameter):
+            # event handler which takes additional parameters
+            ...
         EVENTS += patterns(
             (r'REGEX', my_handler),
             ((r'REGEX_1', r'REGEX_2'), my_second_handler),
-            (MKey('Shift-r'), my_third_handler),
+            (r'^Key Meta4-Shift-r'), my_meta4_shift_r_handler, 42),
             SendSet('Shift-', style='vim'),
             ...
         )
     """
     resolver_list = []
     for t in tuples:
-        if type(t) not in (types.ListType, types.TupleType):
+        if callable(t):
+            t = t()
+        if not isinstance(t, (types.ListType, types.TupleType)):
             t = [t]
+
+        if not t:
+            logger.warn('Empty event tuple')
+            continue
+
         regex = t[0]
 
         try:
@@ -184,11 +211,11 @@ def patterns(*tuples):
         except IndexError:
             handler = None
 
-        default_kwargs = t[2:]
+        default_args = t[2:]
 
-        if callable(regex):
+        if callable(regex) and not isinstance(regex, EventResolver):
             regex = regex()
-        if type(regex) not in (types.ListType, types.TupleType):
+        if not isinstance(regex, (types.ListType, types.TupleType)):
             regex = [regex]
 
         for r in regex:
@@ -196,14 +223,11 @@ def patterns(*tuples):
                 logger.debug('add event resolver: %s' % r)
                 resolver_list.append(r)
             else:
-                if handler:
-                    if callable(handler):
-                        logger.debug('add event handler: "%s", %s' % (r, handler))
-                        resolver_list.append(EventResolver(r, handler, *default_kwargs))
-                    else:
-                        logger.warn('invalid handler: "%s", %s' % (r, handler))
-                else:
-                    logger.warn('no handler defined: "%s"' % r)
+                logger.debug('add event handler: "%s", %s' % (r, handler))
+                try:
+                    resolver_list.append(EventResolver(r, handler, default_args))
+                except TypeError, e:
+                    logger.exception(e)
     return resolver_list
 
 

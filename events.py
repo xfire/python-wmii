@@ -39,72 +39,72 @@ EVENTS = patterns(
 # work views (view, add tag, set tag)
 for i in range(1, 10):
     EVENTS += patterns(
-        (MKey('%d' % i), View(str(i))),
-        (MKey('Shift-%d' % i), AddTag(str(i))),
-        (MKey('Control-%d' % i), SetTag(str(i))),
+        (r'^Key Mod4-%d' % i, View(str(i))),
+        (r'^Key Mod4-Shift-%d' % i, AddTag(str(i))),
+        (r'^Key Mod4-Control-%d' % i, SetTag(str(i))),
     )
 
 # named views (view, add tag, set tag)
 NAMED_VIEWS = ['mail', 'browser', 'irssi_downgra_de', 'irssi_logix_tt', 'logs']
 for i in range(0, len(NAMED_VIEWS)):
     EVENTS += patterns(
-        (MKey('F%d' % (i+1)), View(d2t(NAMED_VIEWS[i]))),
-        (MKey('Shift-F%d' % (i+1)), AddTag(d2t(NAMED_VIEWS[i]))),
-        (MKey('Control-F%d' % (i+1)), SetTag(d2t(NAMED_VIEWS[i]))),
+        (r'^Key Mod4-F%d' % (i+1), View(d2t(NAMED_VIEWS[i]))),
+        (r'^Key Mod4-Shift-F%d' % (i+1), AddTag(d2t(NAMED_VIEWS[i]))),
+        (r'^Key Mod4-Control-F%d' % (i+1), SetTag(d2t(NAMED_VIEWS[i]))),
     )
 
 EVENTS += patterns(
     # focus up/down/left/right/h/j/k/l client
-    SelectSet(MKey('Shift-'), SelectSet.VIM),
-    SelectSet(MKey('Shift-'), SelectSet.CURSOR),
-    (MKey('Tab'), Select('down')),
+    SelectSet(r'^Key Mod4-Shift-', SelectSet.VIM),
+    SelectSet(r'^Key Mod4-Shift-', SelectSet.CURSOR),
+    (r'^Key Mod4-Tab', Select('down')),
 
     # move selected client up/down/left/right/h/j/k/l
-    SendSet(MKey('Control-'), SendSet.VIM),
-    SendSet(MKey('Control-'), SendSet.CURSOR),
+    SendSet(r'^Key Mod4-Control-', SendSet.VIM),
+    SendSet(r'^Key Mod4-Control-', SendSet.CURSOR),
 
     # switch to next or previous view
-    (MKey('Right'), NextView()),
-    (MKey('l'), NextView()),
-    (MKey('Left'), PrevView()),
-    (MKey('h'), PrevView()),
+    (r'^Key Mod4-Right', NextView()),
+    (r'^Key Mod4-l', NextView()),
+    (r'^Key Mod4-Left', PrevView()),
+    (r'^Key Mod4-h', PrevView()),
 
     # scratch pad
-    (MKey('space'), ToggleScratchPad()),
-    (MKey('Shift-Space'), AddTag(d2t(SCRATCHPAD))),
-    (MKey('Ctrl-Space'), SetTag(d2t(SCRATCHPAD))),
+    (r'^Key Mod4-Space', ToggleScratchPad()),
+    (r'^Key Mod4-Shift-Space', AddTag(d2t(SCRATCHPAD))),
+    (r'^Key Mod4-Ctrl-Space', SetTag(d2t(SCRATCHPAD))),
 
     # history
-    (MKey('plus'), HistoryNext()),
-    (MKey('minus'), HistoryPrev()),
+    (r'^Key Mod4-plus', HistoryNext()),
+    (r'^Key Mod4-minus', HistoryPrev()),
 
     # toggle between managed and floating layer
-    (MKey('f'), Toggle()),
-    (MKey('Shift-f'), SendToggle()),
+    (r'^Key Mod4-f', Toggle()),
+    (r'^Key Mod4-Shift-f', SendToggle()),
 
     # add/set tag for current client selected using dmenu
-    (MKey('Shift-t'), AddTag(d2t(DMenu(TagGenerator())))),
-    (MKey('Control-t'), SetTag(d2t(DMenu(TagGenerator())))),
+    (r'^Key Mod4-Shift-t', AddTag(d2t(DMenu(TagGenerator())))),
+    (r'^Key Mod4-Control-t', SetTag(d2t(DMenu(TagGenerator())))),
 
     # remove current client from view
-    (MKey('Shift-u'), RemoveTag(active_view)),
-    (MKey('Control-u'), SetTag(active_view)),
+    (r'^Key Mod4-Shift-u', RemoveTag(active_view)),
+    (r'^Key Mod4-Control-u', SetTag(active_view)),
 
     # switch column modes
-    (MKey('s'), ColMode('stack')),
-    (MKey('d'), ColMode()),
-    (MKey('m'), ColMode('max')),
+    (r'^Key Mod4-s', ColMode('stack')),
+    (r'^Key Mod4-d', ColMode()),
+    (r'^Key Mod4-m', ColMode('max')),
     # kill client
-    (MKey('Control-c'), Kill()),
+    (r'^Key Mod4-Control-c', Kill()),
 
     # run applications
-    (MKey('Return'), Execute('x-terminal-emulator')),
-    (MKey('Shift-Return'), Execute('x-terminal-emulator -fg red -e sudo su -')),
-    (MKey('Shift-b'), Execute('set_random_wallpaper.zsh')),
-    (MKey('F12'), Execute('slock')),
+    (r'^Key Mod4-Return', Execute('x-terminal-emulator')),
+    (r'^Key Mod4-Shift-Return', Execute('x-terminal-emulator -fg red -e sudo su -')),
+    (r'^Key Mod4-Shift-b', Execute('set_random_wallpaper.zsh')),
+    (r'^Key Mod4-F12', Execute('slock')),
 
     # run application selected using dmenu
-    (MKey('p'), Execute(DMenu(ApplicationGenerator()))),
+    (r'^Key Mod4-p', Execute(DMenu(ApplicationGenerator()))),
 )
 
 APPLICATIONS = dict(quit = Quit(),
@@ -114,5 +114,5 @@ APPLICATIONS = dict(quit = Quit(),
                     opera = Execute('opera'),
                     wallpaper = Execute('set_random_wallpaper.zsh'))
 EVENTS += patterns(
-    (MKey('a'), CallDMenu(APPLICATIONS)),
+    (r'^Key Mod4-a', CallDMenu(APPLICATIONS)),
 )

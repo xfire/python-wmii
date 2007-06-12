@@ -272,20 +272,16 @@ class DirectionSet(object):
     STYLES = dict(cursor = ['Up', 'Down', 'Left', 'Right'], vim = ['h', 'j', 'k', 'l'])
 
     def __init__(self, rprefix, type):
-        self.__rprefix = rprefix
+        self.__rprefix = rprefix.rstrip('-')
         self.__type = type
 
     def __call__(self):
-        hlist = []
-        sep = ''
-        if str(self.__rprefix)[-1] != '-':
-            sep = '-'
-        style = self.STYLES[self.__type]
-        for i in range(0, len(style)):
-            key = copy.deepcopy(self.__rprefix)
-            key.add(sep + style[i])
-            hlist.append(EventResolver(key, self.handler()))
-        return hlist
+        klist = []
+        style_list = self.STYLES[self.__type]
+        for style in style_list:
+            key = '%s-%s' % (self.__rprefix, style)
+            klist.append(key)
+        return (klist, self.handler())
 
     def handler(self):
         raise NotImplementedError('%s: please implement handler getter' % self.__class__.__name__)

@@ -188,10 +188,10 @@ def stop_statusbar():
 # ---------------------------------------------------------------------------
 
 def parse_file(path_list, regex_list):
-    if type(path_list) not in (types.ListType, types.TupleType):
+    if not isinstance(path_list, (types.ListType, types.TupleType)):
         path_list = [path_list]
 
-    if type(regex_list) not in (types.ListType, types.TupleType):
+    if not isinstance(regex_list, (types.ListType, types.TupleType)):
         regex_list = [regex_list]
 
     lines = []

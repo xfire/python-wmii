@@ -45,7 +45,7 @@ DMENU_SELECTION_COLORS = Colors(0xffffff, 0x1c2636)
 # scratch pad tag name
 SCRATCHPAD = '_sp'
 
-# tag mappings: (display name, tag name), ...
+# tag mappings: (display tag name, real tag name), ...
 TAG_MAPPING = (
     ('mail', '01_mail'),
     ('browser', '02_browser'),

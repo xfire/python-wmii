@@ -18,7 +18,7 @@
 # vim:syntax=python:sw=4:ts=4:expandtab
 
 import sys
-from utils import patterns, t2d
+from utils import patterns
 from utils.event_handler import *
 
 EVENTS = patterns(
@@ -48,9 +48,9 @@ for i in range(1, 10):
 NAMED_VIEWS = ['mail', 'browser', 'irssi_downgra_de', 'irssi_logix_tt', 'logs']
 for i in range(0, len(NAMED_VIEWS)):
     EVENTS += patterns(
-        (r'^Key Mod4-F%d$' % (i+1), View(d2t(NAMED_VIEWS[i]))),
-        (r'^Key Mod4-Shift-F%d$' % (i+1), AddTag(d2t(NAMED_VIEWS[i]))),
-        (r'^Key Mod4-Control-F%d$' % (i+1), SetTag(d2t(NAMED_VIEWS[i]))),
+        (r'^Key Mod4-F%d$' % (i+1), View(NAMED_VIEWS[i])),
+        (r'^Key Mod4-Shift-F%d$' % (i+1), AddTag(NAMED_VIEWS[i])),
+        (r'^Key Mod4-Control-F%d$' % (i+1), SetTag(NAMED_VIEWS[i])),
     )
 
 EVENTS += patterns(
@@ -71,8 +71,8 @@ EVENTS += patterns(
 
     # scratch pad
     (r'^Key Mod4-space$', ToggleScratchPad()),
-    (r'^Key Mod4-Shift-space$', AddTag(d2t(SCRATCHPAD))),
-    (r'^Key Mod4-Ctrl-space$', SetTag(d2t(SCRATCHPAD))),
+    (r'^Key Mod4-Shift-space$', AddTag(SCRATCHPAD)),
+    (r'^Key Mod4-Ctrl-space$', SetTag(SCRATCHPAD)),
 
     # history
     (r'^Key Mod4-plus$', HistoryNext()),
@@ -80,11 +80,11 @@ EVENTS += patterns(
 
     # toggle between managed and floating layer
     (r'^Key Mod4-f$', Toggle()),
-    (r'^Key Mod4-Shift-f$', SendToggle()),
+    (r'^Key Mod4-Control-f$', SendToggle()),
 
     # add/set tag for current client selected using dmenu
-    (r'^Key Mod4-Shift-t$', AddTag(d2t(DMenu(TagGenerator())))),
-    (r'^Key Mod4-Control-t$', SetTag(d2t(DMenu(TagGenerator())))),
+    (r'^Key Mod4-Shift-t$', AddTag(DMenu(TagGenerator()))),
+    (r'^Key Mod4-Control-t$', SetTag(DMenu(TagGenerator()))),
 
     # remove current client from view
     (r'^Key Mod4-Shift-u$', RemoveTag(active_view)),

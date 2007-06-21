@@ -247,40 +247,34 @@ def autostart():
 
 # ---------------------------------------------------------------------------
 
-TAG_MAPPING_T2D = {}
-TAG_MAPPING_D2T = {}
+TAF_MAPPING_KEY_DISPLAY = {}
+TAG_MAPPING_KEY_REAL = {}
 
 
 def init_tag_mappings(tmap):
-    for dname, tag in tmap:
-        TAG_MAPPING_T2D[tag] = dname
-        TAG_MAPPING_D2T[dname] = tag
+    global TAF_MAPPING_KEY_DISPLAY, TAG_MAPPING_KEY_REAL
+    clean_tmap = []
+    for d, r in tmap:
+        if d not in [td for td, tr in clean_tmap] and \
+           r not in [tr for td, tr in clean_tmap]:
+            clean_tmap.append((d, r))
+        else:
+            logger.warn('invalid mapping: %s (display) -> %s (real)' % (d, r))
+
+    TAF_MAPPING_KEY_DISPLAY = dict(clean_tmap)
+    TAG_MAPPING_KEY_REAL = dict([(r, d) for d, r in clean_tmap])
 
 
-class tag_mapping_wrapper(object):
-    """lazy tag mapping for callable objects like dmenu"""
-    def __init__(self, map_func, call_func):
-        self.__map_func = map_func
-        self.__call_func = call_func
-
-    def __call__(self):
-        return self.__map_func(self.__call_func())
+def display_tag_name(name):
+    """map tag name to the display name. ('name' can be callable for lazy mapping)"""
+    logger.debug('tag2display: %s', name)
+    return TAG_MAPPING_KEY_REAL.get(name, name)
 
 
-def t2d(tag):
-    """map real tag name to the display name. (tag can be callable for lazy mapping)"""
-    if callable(tag):
-        return tag_mapping_wrapper(t2d, tag)
-    logger.debug('tag2display: %s', tag)
-    return TAG_MAPPING_T2D.get(tag, tag)
-
-
-def d2t(dname):
-    """map display name to the real tag name. (dname can be callable for lazy mapping)"""
-    if callable(dname):
-        return tag_mapping_wrapper(d2t, dname)
-    logger.debug('display2tag: %s', dname)
-    return TAG_MAPPING_D2T.get(dname, dname)
+def real_tag_name(name):
+    """map tag name to the real tag name. ('name' can be callable for lazy mapping)"""
+    logger.debug('display2tag: %s', name)
+    return TAF_MAPPING_KEY_DISPLAY.get(name, name)
 
 # ---------------------------------------------------------------------------
 

@@ -76,6 +76,7 @@ class View(object):
         if button in self._buttons:
             if callable(tag):
                 tag = tag()
+            tag = real_tag_name(tag)
             logger.debug('%s: event[%s], tag[%s]' % (self.__class__.__name__, event, tag))
             p9_write('/ctl', 'view %s' % tag)
 
@@ -140,6 +141,7 @@ class SetTag(object):
         tag = self.__tag
         if callable(tag):
             tag = tag()
+        tag = real_tag_name(tag)
         logger.debug('%s: event[%s], tag[%s]' % (self.__class__.__name__, event, tag))
         p9_write('/client/sel/tags', tag)
 
@@ -153,6 +155,7 @@ class AddTag(object):
         tag = self.__tag
         if callable(tag):
             tag = tag()
+        tag = real_tag_name(tag)
         tag_list.add(tag)
         tag_list = '+'.join(tag_list)
         logger.debug('%s: event[%s], tag[%s], tag_list[%s]' % (self.__class__.__name__, event, tag, tag_list))
@@ -178,14 +181,16 @@ class TagCreate(object):
     def __call__(self, event):
         tag = event.strip().split()[-1]
         if tag and tag != 'NULL':
+            tag = real_tag_name(tag)
             logger.debug('tag_create: event[%s], tag[%s]' % (event, tag))
-            p9_create('/lbar/%s' % tag, '%s %s' % (BAR_NORMAL_COLORS, t2d(tag)))
+            p9_create('/lbar/%s' % real_tag_name(tag), '%s %s' % (BAR_NORMAL_COLORS, display_tag_name(tag)))
 
 class TagDestroy(object):
     """destroy left bar entry on tag deletion."""
     def __call__(self, event):
         tag = event.strip().split()[-1]
         if tag:
+            tag = real_tag_name(tag)
             logger.debug('tag_destroy: event[%s], tag[%s]' % (event, tag))
             p9_remove('/lbar/%s' % tag)
 
@@ -194,32 +199,36 @@ class TagFocus(object):
     def __call__(self, event):
         tag = event.strip().split()[-1]
         if tag and tag != 'NULL':
+            tag = real_tag_name(tag)
             logger.debug('tag_focus: event[%s], tag[%s]' % (event, tag))
-            p9_write('/lbar/%s' % tag, '%s %s' % (BAR_FOCUS_COLORS, t2d(tag)))
+            p9_write('/lbar/%s' % real_tag_name(tag), '%s %s' % (BAR_FOCUS_COLORS, display_tag_name(tag)))
 
 class TagUnfocus(object):
     """set bar normal colors if a tag is unfocused."""
     def __call__(self, event):
         tag = event.strip().split()[-1]
         if tag and tag != 'NULL':
+            tag = real_tag_name(tag)
             logger.debug('tag_unfocus: event[%s], tag[%s]' % (event, tag))
-            p9_write('/lbar/%s' % tag, '%s %s' % (BAR_NORMAL_COLORS, t2d(tag)))
+            p9_write('/lbar/%s' % real_tag_name(tag), '%s %s' % (BAR_NORMAL_COLORS, display_tag_name(tag)))
 
 class TagUrgent(object):
     """mark an tag urgent"""
     def __call__(self, event):
         tag = event.strip().split()[-1]
         if tag and tag != 'NULL':
+            tag = real_tag_name(tag)
             logger.debug('tag_urgent: event[%s], tag[%s]' % (event, tag))
-            p9_write('/lbar/%s' % tag, '*' + t2d(tag))
+            p9_write('/lbar/%s' % real_tag_name(tag), '*' + display_tag_name(tag))
 
 class TagNotUrgent(object):
     """unmark an tag urgent"""
     def __call__(self, event):
         tag = event.strip().split()[-1]
         if tag and tag != 'NULL':
+            tag = real_tag_name(tag)
             logger.debug('tag_not_urgent: event[%s], tag[%s]' % (event, tag))
-            p9_write('/lbar/%s' % tag, t2d(tag))
+            p9_write('/lbar/%s' % real_tag_name(tag), display_tag_name(tag))
 
 # ---------------------------------------------------------------------------
 
@@ -465,6 +474,15 @@ class DMenu(object):
             return sel
         except Exception, e:
             logger.exception(e)
+            # try to close open subprocess
+            try:
+                proc.stdin.close()
+            except:
+                pass
+            try:
+                proc.stdout.close()
+            except:
+                pass
         return ''
 
 WMII9PATH = 'wmii9menu'
@@ -524,10 +542,10 @@ class TagGenerator(object):
     def __init__(self, sort = False):
         self.__sort = sort
 
-    def __call__():
+    def __call__(self):
         """generate list of available tags"""
         ignore = ['sel/']
-        avail_views = [t2d(l.rstrip('/')) for l in p9_ls('/tag') if l not in ignore]
+        avail_views = [display_tag_name(l.rstrip('/')) for l in p9_ls('/tag') if l not in ignore]
 
         if self.__sort:
             avail_views.sort()

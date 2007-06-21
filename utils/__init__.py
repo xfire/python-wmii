@@ -128,7 +128,7 @@ class EventResolver(object):
     def __call__(self, event):
         self.__handler(event, *self.__default_args)
 
-    RE_KEY_REGEX = re.compile(r'^\^?Key (?P<key>.*)$')
+    RE_KEY_REGEX = re.compile(r'^\^?Key (?P<key>.*?)\$?$')
     def __get_key(self, regex_pattern):
         """return the key, if it matches RE_KEY_REGEX, else None"""
         if isinstance(regex_pattern, types.StringTypes):

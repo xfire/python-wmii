@@ -271,15 +271,16 @@ class DirectionSet(object):
     CURSOR = 'cursor'
     STYLES = dict(cursor = ['Up', 'Down', 'Left', 'Right'], vim = ['h', 'j', 'k', 'l'])
 
-    def __init__(self, rprefix, type):
+    def __init__(self, rprefix, rpostfix, type):
         self.__rprefix = rprefix.rstrip('-')
+        self.__rpostfix = rpostfix.lstrip('-')
         self.__type = type
 
     def __call__(self):
         klist = []
         style_list = self.STYLES[self.__type]
         for style in style_list:
-            key = '%s-%s' % (self.__rprefix, style)
+            key = '%s-%s%s' % (self.__rprefix, style, self.__rpostfix)
             klist.append(key)
         return (klist, self.handler())
 

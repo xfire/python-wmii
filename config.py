@@ -42,9 +42,6 @@ DMENU_FONT = FONT
 DMENU_NORMAL_COLORS = Colors(0xb6b4b8, 0x1c2636)
 DMENU_SELECTION_COLORS = Colors(0xffffff, 0x1c2636)
 
-# scratch pad tag name
-SCRATCHPAD = '_sp'
-
 # tag mappings: (display tag name, real tag name), ...
 TAG_MAPPING = (
     ('mail', '01_mail'),

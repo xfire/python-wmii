@@ -69,11 +69,6 @@ EVENTS += patterns(
     (r'^Key Mod4-Left$', PrevView()),
     (r'^Key Mod4-h$', PrevView()),
 
-    # scratch pad
-    (r'^Key Mod4-space$', ToggleScratchPad()),
-    (r'^Key Mod4-Shift-space$', AddTag(SCRATCHPAD)),
-    (r'^Key Mod4-Ctrl-space$', SetTag(SCRATCHPAD)),
-
     # history
     (r'^Key Mod4-plus$', HistoryNext()),
     (r'^Key Mod4-minus$', HistoryPrev()),

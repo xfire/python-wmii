@@ -24,8 +24,8 @@ import logging
 import copy
 from utils import *
 from utils.ringbuffer import RingBuffer
-from config import BAR_NORMAL_COLORS, BAR_FOCUS_COLORS, SCRATCHPAD, \
-                   DMENU_FONT, DMENU_NORMAL_COLORS, DMENU_SELECTION_COLORS
+from config import BAR_NORMAL_COLORS, BAR_FOCUS_COLORS, DMENU_FONT, \
+                   DMENU_NORMAL_COLORS, DMENU_SELECTION_COLORS
 
 logger = logging.getLogger('utils.event_handler')
 
@@ -80,11 +80,9 @@ class View(object):
             logger.debug('%s: event[%s], tag[%s]' % (self.__class__.__name__, event, tag))
             p9_write('/ctl', 'view %s' % tag)
 
-    def _get_views(self, ignore_scratchpad = True):
+    def _get_views(self):
         act_v = active_view()
-        ignore = ['sel/']
-        if ignore_scratchpad and act_v != SCRATCHPAD:
-            ignore.append('%s/' % SCRATCHPAD)
+        ignore = ('sel/',)
         avail_v = [l.rstrip('/') for l in p9_ls('/tag') if l not in ignore]
         return sorted(avail_v)
 
@@ -105,27 +103,25 @@ class WheelView(object):
             logger.exception(e)
 
 class NextView(View):
-    """switch to next view. (excluding scratchpad)"""
-    def __init__(self, ignore_scratchpad = True):
+    """switch to next view."""
+    def __init__(self):
         View.__init__(self)
-        self.__ignore_scratchpad = ignore_scratchpad
 
     def __call__(self, event = None):
         act_view = active_view()
-        avail_views = self._get_views(self.__ignore_scratchpad)
+        avail_views = self._get_views()
         next_view = avail_views[(avail_views.index(act_view) + 1) % len(avail_views)]
         logger.debug('next_view: %s (act view: %s)' % (next_view, act_view))
         View.__call__(self, tag = next_view)
 
 class PrevView(View):
-    """switch to previous view. (excluding scratchpad)"""
-    def __init__(self, ignore_scratchpad = True):
+    """switch to previous view."""
+    def __init__(self):
         View.__init__(self)
-        self.__ignore_scratchpad = ignore_scratchpad
 
     def __call__(self, event = None):
         act_view = active_view()
-        avail_views = self._get_views(self.__ignore_scratchpad)
+        avail_views = self._get_views()
         prev_view = avail_views[(avail_views.index(act_view) - 1) % len(avail_views)]
         logger.debug('prev_view: %s (act view: %s)' % (prev_view, act_view))
         View.__call__(self, tag = prev_view)
@@ -413,22 +409,6 @@ class ColMode(object):
         if mode:
             logger.debug('colmode: event[%s], mode[%s]' % (event, mode))
             p9_write('/tag/sel/ctl', 'colmode sel %s' % mode)
-
-# ---------------------------------------------------------------------------
-
-SCRATCHPAD_ORG_VIEW = SCRATCHPAD
-class ToggleScratchPad(object):
-    def __call__(self, event):
-        """warp to scratch pad or back to previous view."""
-        global SCRATCHPAD_ORG_VIEW
-        act_view = active_view()
-        if act_view == SCRATCHPAD:  # warp back from scratch pad
-            logger.debug('toggle_scratchpad: event[%s], to[%s]' % (event, SCRATCHPAD_ORG_VIEW))
-            View(SCRATCHPAD_ORG_VIEW)()
-        else:  # warp to scratch pad
-            SCRATCHPAD_ORG_VIEW = act_view
-            logger.debug('toggle_scratchpad: event[%s], to[%s]' % (event, SCRATCHPAD))
-            View(SCRATCHPAD)()
 
 # ---------------------------------------------------------------------------
 

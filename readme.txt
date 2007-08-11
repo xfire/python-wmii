@@ -192,8 +192,9 @@ if you want to write your own event handlers, best look into
 the statusbar reads plugins from `statusbar` subdirectory and call periodical
 the `update()` function, which every statusbar plugin must 
 implement.
-each plugin must implement an `interval()` function, which return the interval
-in seconds, in which the `update()` function is called.
+each plugin could implement an `interval()` function, which return the interval
+in seconds, in which the `update()` function is called. If not implemented, a
+default one is used.
 
 the return value of the `update()` function can be `None`, indicating that no 
 update should be done, or it must be an tuple containing the color and the 

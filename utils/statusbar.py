@@ -19,10 +19,11 @@
 
 """
 this module loads statusbar plugins from a given path.
-these plugins are seen as python modules and must define the method
-'update()' and 'interval()'.
+these plugins are seen as python modules and must define the function
+'update()' and an optional 'interval()'.
 
-the interval function must return the time between two update calls.
+the interval function must return the time between two update calls, if
+returns None or not implemented, a default function is used.
 
 the update method is called all interval() seconds and must return a
 tuple in the form (color, text). it can also return None, which
@@ -54,6 +55,10 @@ class PluginRunner(Thread):
         self.__module = module
         self.__running = True
 
+        if not hasattr(self.__module, 'interval') or self.__module.interval() == None:
+            logger.debug('module %s doesn\'t have a interval function, setting a default one' % self.__name)
+            setattr(self.__module, 'interval', lambda: 5)
+
     @property
     def name(self):
         return self.__name
@@ -74,11 +79,7 @@ class PluginRunner(Thread):
                     p9_write('/rbar/%s' % self.__name, '%s %s' % uval)
             except Exception, e:
                 logger.exception(e)
-            try:
-                time.sleep(self.__module.interval())
-            except Exception, e:
-                logger.exception(e)
-                time.sleep(5)
+            time.sleep(self.__module.interval())
 
 class Watcher(Thread):
     def __init__(self, timeout = 5):
@@ -145,7 +146,7 @@ def start_statusbar(path, separator = None, start = None, end = None):
         try:
             name = f.replace('.py', '')
             mod = __import__('.'.join((os.path.split(path)[-1], name)), '', '', name)
-            if hasattr(mod, 'update') and hasattr(mod, 'interval'):
+            if hasattr(mod, 'update'):
                 val = mod.update()
                 if val:
                     p9_create('/rbar/%s' % name, '%s %s' % val)

@@ -35,6 +35,7 @@ import re
 import logging
 import types
 import time
+import subprocess
 from threading import Thread, Lock
 from utils import *
 
@@ -219,3 +220,6 @@ def parse_file(path_list, regex_list):
 
     return ret
 
+def process_by_pipe(process_info):
+    p = subprocess.Popen(process_info, stdout=subprocess.PIPE, close_fds=True)
+    return p.communicate()

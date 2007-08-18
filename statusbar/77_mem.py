@@ -18,10 +18,10 @@
 # vim:syntax=python:sw=4:ts=4:expandtab
 
 import re
-import subprocess
 import logging
 
 from utils import Colors
+from utils.statusbar import process_by_pipe
 from config import BAR_NORMAL_COLORS
 
 logger = logging.getLogger('statusbar.mem')
@@ -36,9 +36,8 @@ def interval():
 
 def update():
     try:
-        p = subprocess.Popen(['free', '-m'], stdout=subprocess.PIPE, close_fds=True)
-        lines = p.stdout.readlines()
-        p.stdout.close()
+        out, err = process_by_pipe(['free', '-m'])
+        lines = out.split('\n')
 
         mem = RE_MEM.match(lines[1])
         swap = RE_SWAP.match(lines[3])

@@ -18,10 +18,10 @@
 # vim:syntax=python:sw=4:ts=4:expandtab
 
 import re
-import subprocess
 import logging
 
 from utils import Colors
+from utils.statusbar import process_by_pipe
 from config import BAR_NORMAL_COLORS
 
 logger = logging.getLogger('statusbar.iface')
@@ -36,9 +36,8 @@ def update():
         s = ""
         for iface in ['eth0', 'eth1']:
             s += iface + ": "
-            p = subprocess.Popen(['ip', 'a', 's', iface], stdout=subprocess.PIPE, close_fds=True)
-            lines = p.stdout.readlines()
-            p.stdout.close()
+            out, err = process_by_pipe(['ip', 'a', 's', iface])
+            lines = out.split('\n')
 
             if re.search("UP", lines[0]) == None:
                 s += "off "

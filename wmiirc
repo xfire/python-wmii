@@ -26,7 +26,7 @@ except ImportError:
     pass
 
 import sys, os
-import subprocess, atexit, traceback
+import subprocess, atexit
 import logging, logging.handlers
 
 # init logger
@@ -54,6 +54,16 @@ init_tag_mappings(TAG_MAPPING)
 
 from utils.statusbar import *
 from events import *
+
+# check wmii font
+font_check = subprocess.Popen(['xlsfonts', '-fn', FONT], 
+                              stdin = subprocess.PIPE, 
+                              stdout = subprocess.PIPE, 
+                              stderr = subprocess.PIPE, 
+                              close_fds = True)
+(fc_out, fc_err) = font_check.communicate()
+if fc_err:
+    FONT = '-*-fixed-medium-r-*-*-13-*-*-*-*-*-*-*'
 
 # close running wmiirc
 p9_write('/event', 'Start wmiirc')

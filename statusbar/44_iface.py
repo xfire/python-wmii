@@ -34,7 +34,7 @@ def interval():
 def update():
     try:
         s = ""
-        for iface in ['eth0', 'eth1']:
+        for iface in ['eth0', 'wlan0']:
             s += iface + ": "
             out, err = process_by_pipe(['ip', 'a', 's', iface])
             lines = out.split('\n')

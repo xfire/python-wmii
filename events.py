@@ -105,8 +105,10 @@ EVENTS += patterns(
 APPLICATIONS = dict(quit = Quit(),
                     lock = Execute('slock'),
                     mail = Execute('start.mail'),
-                    firefox = Execute('firefox'),
-                    opera = Execute('opera'),
+                    ifirefox = Execute('firefox'),
+                    iopera = Execute('opera'),
+                    firefox = Execute('sudo -H -u surf /home/surf/bin/exec /usr/bin/firefox'),
+                    opera = Execute('sudo -H -u surf /home/surf/bin/exec /usr/bin/opera'),
                     wallpaper = Execute('set_random_wallpaper.zsh'))
 EVENTS += patterns(
     (r'^Key Mod4-a$', CallDMenu(APPLICATIONS)),

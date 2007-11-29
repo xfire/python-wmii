@@ -26,3 +26,4 @@ $HOME/bin/start.loggers
 $HOME/bin/start.irssi
 $HOME/bin/pal_mail.zsh &
 
+mpd $HOME/.mpd/conf

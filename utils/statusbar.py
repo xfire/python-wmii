@@ -38,6 +38,7 @@ import time
 import subprocess
 from threading import Thread, Lock
 from utils import *
+from config import BAR_NORMAL_COLORS
 
 __all__ = ['start_statusbar', 'stop_statusbar']
 
@@ -149,8 +150,9 @@ def start_statusbar(path, separator = None, start = None, end = None):
             mod = __import__('.'.join((os.path.split(path)[-1], name)), '', '', name)
             if hasattr(mod, 'update'):
                 val = mod.update()
-                if val:
-                    p9_create('/rbar/%s' % name, '%s %s' % val)
+                if not val:
+                    val = (BAR_NORMAL_COLORS, '')
+                p9_create('/rbar/%s' % name, '%s %s' % val)
 
                 if separator and f != flist[-1]:
                     r = self.POS_RE.match(name)

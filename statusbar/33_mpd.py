@@ -50,8 +50,10 @@
 import os
 import logging
 
+has_pympd = False
 try:
     from pympd.modules import mpdlib2
+    has_pympd = True
 except:
     pass
 
@@ -84,19 +86,21 @@ def songstr(song):
 def update():
     global mpd
         
-    try:
-        if not mpd:
-            mpd = mpdlib2.connect()
+    if has_pympd:
+        try:
+            if not mpd:
+                mpd = mpdlib2.connect()
 
-        status = mpd.do.status()
+            status = mpd.status()
 
-        if status:
-            song = ''
-            if status.state in ('play', 'pause'):
-                song = ' %s' % songstr(mpd.do.currentsong())
-            return (BAR_NORMAL_COLORS, 'MPD: [%s]%s' % (status.state, song))
-    except Exception, e:
-        logger.exception(e)
+            if status:
+                song = ''
+                if status.state in ('play', 'pause'):
+                    song = ' %s' % songstr(mpd.currentsong())
+                return (BAR_NORMAL_COLORS, 'MPD: [%s]%s' % (status.state, song))
+        except Exception, e:
+            logger.exception(e)
+            mpd = None  # try to reconnect if connection is lost
 
     return None
 

@@ -20,6 +20,7 @@
 import sys
 from utils import patterns
 from utils.event_handler import *
+from config import MODKEY
 
 EVENTS = patterns(
     (r'^Start wmiirc$', FWrap(sys.exit, 0)),
@@ -39,67 +40,67 @@ EVENTS = patterns(
 # work views (view, add tag, set tag)
 for i in range(1, 10):
     EVENTS += patterns(
-        (r'^Key Mod4-%d$' % i, View(str(i))),
-        (r'^Key Mod4-Shift-%d$' % i, AddTag(str(i))),
-        (r'^Key Mod4-Control-%d$' % i, SetTag(str(i))),
+        (r'^Key %s-%d$' % (MODKEY, i), View(str(i))),
+        (r'^Key %s-Shift-%d$' % (MODKEY, i), AddTag(str(i))),
+        (r'^Key %s-Control-%d$' % (MODKEY, i), SetTag(str(i))),
     )
 
 # named views (view, add tag, set tag)
 NAMED_VIEWS = ['mail', 'browser', 'irssi_downgra_de', 'irssi_logix_tt', 'logs']
 for i in range(0, len(NAMED_VIEWS)):
     EVENTS += patterns(
-        (r'^Key Mod4-F%d$' % (i+1), View(NAMED_VIEWS[i])),
-        (r'^Key Mod4-Shift-F%d$' % (i+1), AddTag(NAMED_VIEWS[i])),
-        (r'^Key Mod4-Control-F%d$' % (i+1), SetTag(NAMED_VIEWS[i])),
+        (r'^Key %s-F%d$' % (MODKEY, (i+1)), View(NAMED_VIEWS[i])),
+        (r'^Key %s-Shift-F%d$' % (MODKEY, (i+1)), AddTag(NAMED_VIEWS[i])),
+        (r'^Key %s-Control-F%d$' % (MODKEY, (i+1)), SetTag(NAMED_VIEWS[i])),
     )
 
 EVENTS += patterns(
     # focus up/down/left/right/h/j/k/l client
-    SelectSet(r'^Key Mod4-Shift-', '$', SelectSet.VIM),
-    SelectSet(r'^Key Mod4-Shift-', '$', SelectSet.CURSOR),
-    (r'^Key Mod4-Tab$', Select('down')),
+    SelectSet(r'^Key %s-Shift-' % MODKEY, '$', SelectSet.VIM),
+    SelectSet(r'^Key %s-Shift-' % MODKEY, '$', SelectSet.CURSOR),
+    (r'^Key %s-Tab$' % MODKEY, Select('down')),
 
     # move selected client up/down/left/right/h/j/k/l
-    SendSet(r'^Key Mod4-Control-', '$', SendSet.VIM),
-    SendSet(r'^Key Mod4-Control-', '$', SendSet.CURSOR),
+    SendSet(r'^Key %s-Control-' % MODKEY, '$', SendSet.VIM),
+    SendSet(r'^Key %s-Control-' % MODKEY, '$', SendSet.CURSOR),
 
     # switch to next or previous view
-    (r'^Key Mod4-Right$', NextView()),
-    (r'^Key Mod4-l$', NextView()),
-    (r'^Key Mod4-Left$', PrevView()),
-    (r'^Key Mod4-h$', PrevView()),
+    (r'^Key %s-Right$' % MODKEY, NextView()),
+    (r'^Key %s-l$' % MODKEY, NextView()),
+    (r'^Key %s-Left$' % MODKEY, PrevView()),
+    (r'^Key %s-h$'% MODKEY, PrevView()),
 
     # history
-    (r'^Key Mod4-plus$', HistoryNext()),
-    (r'^Key Mod4-minus$', HistoryPrev()),
+    (r'^Key %s-plus$' % MODKEY, HistoryNext()),
+    (r'^Key %s-minus$' % MODKEY, HistoryPrev()),
 
     # toggle between managed and floating layer
-    (r'^Key Mod4-f$', Toggle()),
-    (r'^Key Mod4-Control-f$', SendToggle()),
+    (r'^Key %s-f$' % MODKEY, Toggle()),
+    (r'^Key %s-Control-f$' % MODKEY, SendToggle()),
 
     # add/set tag for current client selected using dmenu
-    (r'^Key Mod4-Shift-t$', AddTag(DMenu(TagGenerator()))),
-    (r'^Key Mod4-Control-t$', SetTag(DMenu(TagGenerator()))),
+    (r'^Key %s-Shift-t$' % MODKEY, AddTag(DMenu(TagGenerator()))),
+    (r'^Key %s-Control-t$' % MODKEY, SetTag(DMenu(TagGenerator()))),
 
     # remove current client from view
-    (r'^Key Mod4-Shift-u$', RemoveTag(active_view)),
-    (r'^Key Mod4-Control-u$', SetTag(active_view)),
+    (r'^Key %s-Shift-u$' % MODKEY, RemoveTag(active_view)),
+    (r'^Key %s-Control-u$' % MODKEY, SetTag(active_view)),
 
     # switch column modes
-    (r'^Key Mod4-s$', ColMode('stack')),
-    (r'^Key Mod4-d$', ColMode()),
-    (r'^Key Mod4-m$', ColMode('max')),
+    (r'^Key %s-s$' % MODKEY, ColMode('stack')),
+    (r'^Key %s-d$' % MODKEY, ColMode()),
+    (r'^Key %s-m$' % MODKEY, ColMode('max')),
     # kill client
-    (r'^Key Mod4-Control-c$', Kill()),
+    (r'^Key %s-Control-c$' % MODKEY, Kill()),
 
     # run applications
-    (r'^Key Mod4-Return$', Execute('x-terminal-emulator')),
-    (r'^Key Mod4-Shift-Return$', Execute('x-terminal-emulator -fg red -e sudo su -')),
-    (r'^Key Mod4-Shift-b$', Execute('set_random_wallpaper.zsh')),
-    (r'^Key Mod4-F12$', Execute('slock')),
+    (r'^Key %s-Return$' % MODKEY, Execute('x-terminal-emulator')),
+    (r'^Key %s-Shift-Return$' % MODKEY, Execute('x-terminal-emulator -fg red -e sudo su -')),
+    (r'^Key %s-Shift-b$' % MODKEY, Execute('set_random_wallpaper.zsh')),
+    (r'^Key %s-F12$' % MODKEY, Execute('slock')),
 
     # run application selected using dmenu
-    (r'^Key Mod4-p$', Execute(DMenu(ApplicationGenerator()))),
+    (r'^Key %s-p$' % MODKEY, Execute(DMenu(ApplicationGenerator()))),
 )
 
 APPLICATIONS = dict(quit = Quit(),
@@ -111,5 +112,5 @@ APPLICATIONS = dict(quit = Quit(),
                     opera = Execute('sudo -H -u surf /home/surf/bin/exec /usr/bin/opera'),
                     wallpaper = Execute('set_random_wallpaper.zsh'))
 EVENTS += patterns(
-    (r'^Key Mod4-a$', CallDMenu(APPLICATIONS)),
+    (r'^Key %s-a$' % MODKEY, CallDMenu(APPLICATIONS)),
 )

@@ -50,6 +50,7 @@ class P9Exception(Exception):
 class P9Client(object):
     ROOT = 23
     def __init__(self):
+        self.connected = False
         sock_path = os.environ.get('WMII_ADDRESS', '').split('!')
         try:
             if sock_path[0] == 'unix':
@@ -212,6 +213,7 @@ class P9Client(object):
 cl = P9Client()
 
 def p9_available():
+    global cl
     return cl.connected
 
 def p9_write(path, value):

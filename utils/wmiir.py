@@ -25,7 +25,23 @@ logger = logging.getLogger('utils.wmiir')
 
 __all__ = ['p9_write', 'p9_read', 'p9_create', 'p9_remove', 'p9_ls', 'p9_process', 'p9_available']
 
-WMIIR_PATH = '/usr/bin/wmiir'
+def wmiir_path():
+    """
+    Returns the path for the wmiir executable (look in PATH
+    environment setting)
+    """
+
+    p = os.environ.get("PATH").split(':')
+
+    for path in p:
+        if os.path.exists(path + os.sep + "wmiir"):
+            return path + os.sep + "wmiir"
+
+    # nothing found
+    return None
+
+
+WMIIR_PATH = wmiir_path()
 
 def wmiir(cmd):
     def decorator(func):
@@ -79,6 +95,4 @@ def p9_process(stdin, stdout, func, *args, **kwargs):
         next = stdout.readline()
 
 def p9_available():
-    if os.path.isfile(WMIIR_PATH):
-        return True
-    return False
+    return WMIIR_PATH and os.path.isfile(WMIIR_PATH)
